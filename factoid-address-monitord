@@ -43,10 +43,10 @@ const argv = yargs
             describe: 'The port to access walletd. Defaults to 8089',
             default: 8089
         },
-        path: {
-            demand: false,
-            alias: 'p',
-            describe: 'Path to output an additional copy of transaction-history.csv (note: factoid-address-monitord will always save the master copy of the CSV to the working directory)'
+        file: {
+            demand: true,
+            alias: 'f',
+            describe: 'CSV file to output transaction history'
         },
         key: {
             demand: false,
@@ -61,7 +61,7 @@ const argv = yargs
         type: {
             demand: false,
             alias: 't',
-            describe: 'You bitcoin.tax transaction type. Defaults to `income`. See the bitcoin.tax API docs for details',
+            describe: 'Your bitcoin.tax transaction type. Defaults to `income`. See the bitcoin.tax API docs for details',
             default: 'Income'
         },
     })
@@ -125,10 +125,7 @@ async function handleNewTransactions(receivedTransactions) {
     try {
         for (const item of receivedTransactions) {
             const csvData = `${item.date.slice(0, 10)}, ${argv.address}, ${item.txid}, ${item.fctReceived}, ${item.txType}, ${item.btcExchange}, ${item.fiatExchange}, ${item.fiatPrice}, ${item.fiatValue}, ${item.currency}\n`;
-            fs.appendFileSync('transaction-history.csv', csvData);
-            if (argv.path !== undefined) {
-                fs.appendFileSync(`${argv.path}/transaction-history.csv`, csvData);
-            }
+            fs.appendFileSync(`${argv.file}`, csvData);
         }
         console.log('Written new transaction(s) to csv');
 
@@ -205,8 +202,8 @@ function wait(timeout) {
 
 async function getFileState() {
     const currentFileState = new Set();
-    if (fs.existsSync('./transaction-history.csv')) {
-        const csvFilePath = './transaction-history.csv';
+    if (fs.existsSync(`${argv.file}`)) {
+        const csvFilePath = `${argv.file}`;
         await new Promise((resolve, reject) => {
             csv()
                 .fromFile(csvFilePath)
@@ -218,10 +215,7 @@ async function getFileState() {
     } else {
         console.log('Initialising new CSV');
         const csvInit = 'date, address, txid, fctReceived, txType, btcExchange, fiatExchange, fiatPrice, fiatValue, currency\n';
-        fs.writeFileSync('./transaction-history.csv', csvInit);
-        if (argv.path !== undefined) {
-            fs.writeFileSync(`${argv.path}/transaction-history.csv`, csvInit);
-        }
+        fs.writeFileSync(`${argv.file}`, csvInit);
         return currentFileState;
     }
 }
@@ -240,7 +234,7 @@ async function getTransactions(x) {
 
 // async function test() {
 //     try {
-//         fs.unlinkSync('./transaction-history.csv');
+//         fs.unlinkSync(`${argv.file}`);
 //     } catch (err) {
 //         console.log('No file to delete');
 //     }

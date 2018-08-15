@@ -19,17 +19,15 @@ script. Again, this could just be the path where you cloned this project.  If
 the dependencies were installed globally and you copied the script to
 `/usr/bin` it would look like this.
 ```
-ExecStart=/usr/bin/factoid-address-monitord --address %I $FACTOID_ADDRESS_MONITORD_OPTS
+ExecStart=/usr/bin/factoid-address-monitord --address %I --file /var/db/factoid-address-monitord/%I.csv $FACTOID_ADDRESS_MONITORD_OPTS
 ```
 
-### WorkingDirectory
-The unit uses the public Factoid address as the name of a directory where it
-stores the `transaction-history.csv`. By default the path is
-`/var/db/factoid-address-monitord/FAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX/`.
-**You must create the directories before starting the service.**
-```
-WorkingDirectory=/var/db/factoid-address-monitord/%I
-```
+### Output directory
+The unit uses the public Factoid address as the name of the CSV file where it
+stores the transaction history. By default the path is
+`/var/db/factoid-address-monitord/`.
+**You must create this directories before starting the service.**
+The path can be changed by editing the `ExecStart` line above.
 
 ### Additional options
 To pass additional CLI options you can create a file
@@ -44,7 +42,7 @@ FACTOID_ADDRESS_MONITORD_OPTS="--currency USD --key xxxxxxxxx --secret xxxxxxxxx
 cp /path/to/factoid-address-monitord.defaults /etc/default/factoid-address-monitord
 cp /path/to/factoid-address-monitord@.service /etc/systemd/system/
 systemctl daemon-reload
-mkdir -p /var/db/factoid-address-monitord/FA2efw5fsufKusByeBVa6gZERKV9X5LJN3wKcazndTQNFAePRrft
+mkdir -p /var/db/factoid-address-monitord/
 ```
 
 ## Starting
