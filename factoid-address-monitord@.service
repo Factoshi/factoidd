@@ -7,18 +7,15 @@ Description=Monitor transactions for Factoid address %I
 ;After=factom-walletd.service
 
 [Service]
-; Set the directory where the transaction data is stored. This directory must
-; exist, including a directory by the name of the public factoid address.
-WorkingDirectory=/var/db/factoid-address-monitord/%I
-
 ; Set this to the node_modules folder with the depencies installed.
 Environment="NODE_PATH=/usr/lib/node_modules/"
 
 ; Set additional CLI opts in this optional file.
 EnvironmentFile=-/etc/default/factoid-address-monitord
 
-; Set the path to the factoid-address-monitord script.
-ExecStart=/usr/bin/factoid-address-monitord --address %I $FACTOID_ADDRESS_MONITORD_OPTS
+; Set the path to the factoid-address-monitord script and the output directory
+; for CSV files.
+ExecStart=/usr/bin/factoid-address-monitord --address %I --file /var/db/factoid-address-monitord/%I.csv $FACTOID_ADDRESS_MONITORD_OPTS
 
 Restart=always
 
