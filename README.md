@@ -11,6 +11,8 @@ The script is highly flexible. It allows users to monitor multiple adresses, and
 multiple options that are unique to each address. Output for any given address can be sent
 directly to bitcoin.tax, saved as a CSV, or both.
 
+All price data is taken from CryptoCompare.
+
 ## Installing NodeJS
 
 First, install NodeJS on your system.
@@ -161,14 +163,6 @@ The result is that the price can sometimes vary dramatically between the two
 aggregators. Which price is accurate? The aggregator with more exchanges, or
 the aggregator with exchanges that you as a user can actually access to sell
 your FCT? The answer is not necessarily clear.
-
-To give you as much control as possible over prices, we have included the -b
-and -f options, which will allow you to specify which CryptoCompare exchanges
-to use for both the price of FCT in BTC, and the price of BTC in your target
-fiat currency. Available exchanges can be found on
-[CryptoCompare.com](https://www.cryptocompare.com/). If you do not include
-these options, the price will default to CryptoCompare's aggregate of all
-listed exchanges.
 
 Finally, Factoid Address Monitord does have the ability to get prices in any fiat currency
 where CryptoCompare reports a market in BTC. However, unless your chosen
