@@ -1,6 +1,7 @@
 const fs = require('fs');
 
 const axios = require('axios');
+const axiosRetry = require('axios-retry');
 const { Parser } = require('json2csv');
 const moment = require('moment');
 
@@ -81,6 +82,8 @@ class Address {
 
     async addToBitcoinTax() {
         if (!this.saveToBitcoinTax) return;
+
+        axiosRetry(axios, { retries: 3 });
 
         await axios({
             method: 'POST',
