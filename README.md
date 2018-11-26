@@ -17,7 +17,7 @@ First, install NodeJS on your system.
 
 #### Ubuntu
 
-The best way to install Node on Ubuntu is with Node Version Manager (NVM):
+The best way to install Node on Ubuntu is with [Node Version Manager (NVM)](https://github.com/creationix/nvm):
 
 ```
 curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
@@ -97,8 +97,7 @@ Make sure there is a comma between each address block, but no comma after the fi
 
 ### Without PM2
 
-First, make sure factomd is running on your target host. Then,
-appending your preferred options, run:
+First, make sure factomd is running on your target host, then run.
 
 ```
 node index.js
@@ -106,7 +105,7 @@ node index.js
 
 ### With PM2
 
-First you must install PM2:
+First, you must install PM2:
 
 ```
 npm install pm2 -g
