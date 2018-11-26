@@ -109,7 +109,6 @@ async function checkAndProcessNewReceipts(address) {
         return setTimeout(() => checkAndProcessNewReceipts(address), 600000);
     } catch (err) {
         console.error(err);
-        console.log(address);
     }
 }
 
