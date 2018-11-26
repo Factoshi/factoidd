@@ -82,9 +82,22 @@ async function checkAndProcessNewReceipts(address) {
             await address.addToBitcoinTax();
             await address.addToCsv();
 
+            const totalFiat = address.transactionWithPriceData.reduce(
+                (acc, curr) => acc + curr.total,
+                0
+            );
+
+            const singleOrPlural =
+                address.transactionWithPriceData.length > 1
+                    ? 'transactions'
+                    : 'transaction';
+
             console.log(
-                `Saved new transactions for ${address.nickname}:`,
-                address.transactionWithPriceData
+                `Parsed ${
+                    address.transactionWithPriceData.length
+                } new ${singleOrPlural} for address ${
+                    address.nickname
+                } with a total value of ${totalFiat} ${address.currency}.`
             );
         }
 
@@ -96,6 +109,7 @@ async function checkAndProcessNewReceipts(address) {
         return setTimeout(() => checkAndProcessNewReceipts(address), 600000);
     } catch (err) {
         console.error(err);
+        console.log(address);
     }
 }
 
