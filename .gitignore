@@ -1,5 +1,4 @@
-transaction-history.csv
-package-lock.json
-.DS_Store
+config.json
+playground
 node_modules
-bitcoin-tax-*.json
+csv/*

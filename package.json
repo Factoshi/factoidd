@@ -1,18 +1,19 @@
 {
-  "name": "factoid-address-monitord",
-  "version": "1.2.0",
+  "name": "address-rewrite",
+  "version": "1.0.0",
   "description": "",
-  "main": "factoid-address-monitord",
-  "dependencies": {
-    "axios": "^0.18.0",
-    "csvtojson": "^1.1.9",
-    "factom": "^0.2.2",
-    "yargs": "^11.0.0"
-  },
-  "devDependencies": {},
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [],
   "author": "",
-  "license": "MIT"
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "factom": "^0.3.6",
+    "json2csv": "^4.3.1",
+    "lodash": "^4.17.11",
+    "moment": "^2.22.2"
+  }
 }

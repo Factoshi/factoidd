@@ -1,0 +1,41 @@
+{
+    "factomdConfig": {
+        "host": "localhost",
+        "port": 8088
+    },
+    "addresses": [
+        {
+            "address": "FAxxxx",
+            "currency": "GBP",
+            "nickname": "Main",
+            "saveToCsv": false,
+            "saveToBitcoinTax": true,
+            "bitcoinTaxKey": "aaa",
+            "bitcoinTaxSecret": "xxxxx",
+            "recordCoinbaseReceipts": true,
+            "recordNonCoinbaseReceipts": false
+        },
+        {
+            "address": "FAxxxx",
+            "currency": "USD",
+            "nickname": "Business",
+            "saveToCsv": true,
+            "saveToBitcoinTax": true,
+            "bitcoinTaxKey": "aaa",
+            "bitcoinTaxSecret": "xxxxx",
+            "recordCoinbaseReceipts": false,
+            "recordNonCoinbaseReceipts": true
+        },
+        {
+            "address": "FAxxxx",
+            "currency": "EUR",
+            "nickname": "Personal",
+            "saveToCsv": true,
+            "saveToBitcoinTax": false,
+            "bitcoinTaxKey": "bbb",
+            "bitcoinTaxSecret": "xxxxx",
+            "recordCoinbaseReceipts": true,
+            "recordNonCoinbaseReceipts": false
+        }
+    ]
+}
