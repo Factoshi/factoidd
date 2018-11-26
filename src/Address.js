@@ -44,18 +44,18 @@ class Address {
 
         factoidBlock.transactions.forEach((transaction, i) => {
             if (this.recordCoinbaseReceipts && i === 0) {
-                this.parseFactoidBlockData(transaction);
+                this._parseFactoidTransaction(transaction);
             }
 
             if (this.recordNonCoinbaseReceipts && i !== 0) {
-                this.parseFactoidBlockData(transaction);
+                this._parseFactoidTransaction(transaction);
             }
         });
 
         return this.getAndParseUnseenBlockData(factoidBlock.previousBlockKeyMR);
     }
 
-    async parseFactoidBlockData(transaction) {
+    async _parseFactoidTransaction(transaction) {
         const { timestamp, factoidOutputs, id } = transaction;
 
         const volumeReceived = factoidOutputs
