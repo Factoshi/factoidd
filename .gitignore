@@ -2,3 +2,4 @@ config.json
 playground
 node_modules
 csv/*
+stopBlocks.json
