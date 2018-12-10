@@ -6,7 +6,10 @@ const _ = require('lodash');
 
 const Address = require('./Address');
 const cli = require('./factomd');
-const { addresses } = require('../config.json');
+
+const { getConfig } = require('./configuration')
+
+const { addresses } = getConfig()
 
 function round(value, decimals) {
     return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);

@@ -1,3 +1,4 @@
+const { validateConfig } = require('./configuration')
 const fs = require('fs');
 
 function initStopBlocks() {
@@ -7,16 +8,6 @@ function initStopBlocks() {
     if (!stopBlockExists) {
         console.log('This first scan can take a while...');
         fs.writeFileSync('./stopBlocks.json', '{}');
-    }
-}
-
-function validateConfig() {
-    try {
-        const config = require('../config.json');
-        const asJSON = JSON.stringify(config);
-        JSON.parse(asJSON);
-    } catch (err) {
-        throw new Error('Config file is not valid JSON');
     }
 }
 
