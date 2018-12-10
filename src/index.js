@@ -54,10 +54,10 @@ async function getPrice(transaction) {
 }
 
 function setNewStopBlock(address, keyMR) {
-    const currentStops = require('../stopBlocks.json');
+    const currentStops = require('../db/stopBlocks.json');
     currentStops[address] = keyMR;
     fs.writeFileSync(
-        __dirname + '/../stopBlocks.json',
+        __dirname + '/../db/stopBlocks.json',
         JSON.stringify(currentStops)
     );
 }
