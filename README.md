@@ -67,8 +67,8 @@ First, fill out the location of your factomd node. Default is localhost on port 
 
 ```
  "factomdConfig": {
-    "host": "localhost",
-    "port": 8088
+    "factomdHost": "localhost",
+    "factomdPort": 8088
 },
 ```
 
