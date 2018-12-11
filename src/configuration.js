@@ -37,6 +37,7 @@ const validateConfig = () => {
   const validationResult = Joi.validate(config, configSchema)
 
   if (validationResult.error) {
+    config = null
     throw new ConfigurationError('config.json did not pass validation', validationResult.error)
   }
 }
