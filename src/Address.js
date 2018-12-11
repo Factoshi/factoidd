@@ -5,7 +5,7 @@ const axiosRetry = require('axios-retry');
 const { Parser } = require('json2csv');
 const moment = require('moment');
 
-const stopBlocks = require('../stopBlocks.json');
+const stopBlocks = require('../db/stopBlocks.json');
 const cli = require('./factomd');
 
 class Address {
