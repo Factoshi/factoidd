@@ -1,4 +1,6 @@
 const { validateConfig } = require('./configuration')
+const { initLogging } = require('./logging')
+
 const fs = require('fs');
 
 function initStopBlocks() {
@@ -11,5 +13,6 @@ function initStopBlocks() {
     }
 }
 
+const config = validateConfig();
+initLogging(config.logging);
 initStopBlocks();
-validateConfig();

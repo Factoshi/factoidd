@@ -1,5 +1,6 @@
 const Joi = require('joi');
-const { BaseError } = require('make-error-cause')
+const {log} = require('./logging')
+const {BaseError} = require('make-error-cause')
 
 class ConfigurationError extends BaseError {
   constructor (message, cause) {
@@ -7,12 +8,12 @@ class ConfigurationError extends BaseError {
   }
 }
 
-const configSchema = Joi.object({
-  factomdConfig: Joi.object({
-    host: Joi.string().hostname().default('localhost'),
-    port: Joi.number().port().default(8088),
+const configSchema = Joi.object().required().keys({
+  factomdConfig: Joi.object().required().keys({
+    host: Joi.string().hostname().default('localhost').required(),
+    port: Joi.number().port().default(8088).required(),
   }),
-  addresses: Joi.array().min(1).items(Joi.object({
+  addresses: Joi.array().required().min(1).items(Joi.object({
     address: Joi.string().regex(/^FA[A-Za-z0-9]{50}$/).required(),
     bitcoinTaxKey: Joi.string().alphanum().allow(''),
     bitcoinTaxSecret: Joi.string().alphanum().allow(''),
@@ -22,24 +23,43 @@ const configSchema = Joi.object({
     recordNonCoinbaseReceipts: Joi.boolean().default(false),
     saveToBitcoinTax: Joi.boolean().default(false),
     saveToCsv: Joi.boolean().default(true),
-  }))
+  })),
+  logging: Joi.object().default().keys({
+    papertrail: Joi.object().default().keys({
+      enabled: Joi.boolean().default(false),
+      host: Joi.string().hostname().when('enabled', {
+        is: true,
+        then: Joi.required(),
+      }),
+      port: Joi.number().port().when('enabled', {
+        is: true,
+        then: Joi.required(),
+      }),
+    }),
+    stackdriver: Joi.object().default().keys({
+      enabled: Joi.boolean().default(false),
+    })
+  }),
 })
 
 let config = null
 
 const validateConfig = () => {
-  try {
-    config = require('../conf/config.json')
-  } catch (err) {
-    throw new ConfigurationError('config.json file not found!', err)
-  }
+  const unvalidatedConfig = require('../conf/config.json')
 
-  const validationResult = Joi.validate(config, configSchema)
+  return Joi.validate(
+    unvalidatedConfig,
+    configSchema,
+    (validationError, validatedConfig) => {
+      if (validationError) {
+        throw validationError
+      }
 
-  if (validationResult.error) {
-    config = null
-    throw new ConfigurationError('config.json did not pass validation', validationResult.error)
-  }
+      config = validatedConfig
+      log.info('Configuration successfully read')
+      return validatedConfig
+    }
+  )
 }
 
 const getConfig = () => {
