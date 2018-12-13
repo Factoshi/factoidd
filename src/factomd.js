@@ -4,8 +4,8 @@ const { factomdConfig } = getConfig()
 
 const { FactomCli } = require('factom');
 const cli = new FactomCli({
-    host: factomdConfig.factomdHost,
-    port: factomdConfig.factomdPort
+    host: factomdConfig.host,
+    port: factomdConfig.port
 });
 
 module.exports = cli;
