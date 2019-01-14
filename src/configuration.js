@@ -1,18 +1,21 @@
 const Joi = require('joi');
-const {log} = require('./logging')
-const {BaseError} = require('make-error-cause')
+const { log } = require('./logging');
+const { BaseError } = require('make-error-cause');
 
+//prettier-ignore
 class ConfigurationError extends BaseError {
   constructor (message, cause) {
     super(message, cause)
   }
 }
 
+//prettier-ignore
 const configSchema = Joi.object().required().keys({
   factomdConfig: Joi.object().required().keys({
     host: Joi.string().hostname().default('localhost').required(),
     port: Joi.number().port().default(8088).required(),
   }),
+  cryptocompareApiKey: Joi.string().hex().length(64).required(),
   addresses: Joi.array().required().min(1).items(Joi.object({
     address: Joi.string().regex(/^FA[A-Za-z0-9]{50}$/).required(),
     bitcoinTaxKey: Joi.string().alphanum().allow(''),
@@ -42,11 +45,12 @@ const configSchema = Joi.object().required().keys({
   }),
 })
 
-let config = null
+let config = null;
 
+//prettier-ignore
 const validateConfig = () => {
   const unvalidatedConfig = require('../conf/config.json')
-
+  
   return Joi.validate(
     unvalidatedConfig,
     configSchema,
@@ -54,14 +58,15 @@ const validateConfig = () => {
       if (validationError) {
         throw validationError
       }
-
+      
       config = validatedConfig
       log.info('Configuration successfully read')
       return validatedConfig
     }
-  )
-}
+    )
+  }
 
+//prettier-ignore
 const getConfig = () => {
   if (!config) {
     throw new ConfigurationError('config.json has not been validated!')
@@ -70,4 +75,4 @@ const getConfig = () => {
   return config
 }
 
-module.exports = {validateConfig, getConfig}
+module.exports = { validateConfig, getConfig };

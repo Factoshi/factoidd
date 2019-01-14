@@ -3,6 +3,7 @@
         "host": "localhost",
         "port": 8088
     },
+    "cryptocompareApiKey": "someHexString",
     "addresses": [
         {
             "address": "FAxxxx",
@@ -37,5 +38,15 @@
             "recordCoinbaseReceipts": true,
             "recordNonCoinbaseReceipts": false
         }
-    ]
+    ],
+    "logging": {
+        "papertrail": {
+            "enabled": false,
+            "host": "papertraihost",
+            "port": 443
+        },
+        "stackdriver": {
+            "enabled": false
+        }
+    }
 }

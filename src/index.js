@@ -31,7 +31,8 @@ async function getPrice(transaction) {
         fsym: 'FCT',
         tsym: transaction.currency.toUpperCase(),
         limit: 1,
-        toTs: transaction.date
+        toTs: transaction.date,
+        api_key: cryptocompareApiKey
     });
 
     const uri = `https://min-api.cryptocompare.com/data/${apiTimePeriod}?${fctToCurrencyString}`;
