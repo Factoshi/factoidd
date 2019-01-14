@@ -3,13 +3,11 @@ const fs = require('fs');
 
 const axios = require('axios');
 const _ = require('lodash');
-
+const { log } = require('./logging');
 const Address = require('./Address');
 const cli = require('./factomd');
-
-const { getConfig } = require('./configuration')
-
-const { addresses } = getConfig()
+const { getConfig } = require('./configuration');
+const { addresses, cryptocompareApiKey } = getConfig();
 
 function round(value, decimals) {
     return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
@@ -95,7 +93,7 @@ async function checkAndProcessNewReceipts(address) {
                     ? 'transactions'
                     : 'transaction';
 
-            console.log(
+            log.info(
                 `Parsed ${
                     address.transactionWithPriceData.length
                 } new ${singleOrPlural} for address ${
@@ -111,7 +109,7 @@ async function checkAndProcessNewReceipts(address) {
         setNewStopBlock(address.address, address.stopBlock);
         return setTimeout(() => checkAndProcessNewReceipts(address), 600000);
     } catch (err) {
-        console.error(err);
+        log.error(`${err}`);
     }
 }
 
