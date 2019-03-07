@@ -14,6 +14,7 @@ const configSchema = Joi.object().required().keys({
   factomdConfig: Joi.object().required().keys({
     host: Joi.string().hostname().default('localhost').required(),
     port: Joi.number().port().default(8088).required(),
+    protocol: Joi.string().valid('http', 'https').default('http').required(),
   }),
   cryptocompareApiKey: Joi.string().hex().length(64).required(),
   addresses: Joi.array().required().min(1).items(Joi.object({
