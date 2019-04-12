@@ -1,8 +1,9 @@
 {
-    "factomdConfig": {
-        "host": "localhost",
-        "port": 8088
-    },
+    "factomdConfig": { // optional
+        "host": "localhost", 
+        "port": 8088, 
+        "protocol": "http" 
+    }, 
     "cryptocompareApiKey": "someHexString",
     "addresses": [
         {
@@ -39,7 +40,7 @@
             "recordNonCoinbaseReceipts": false
         }
     ],
-    "logging": {
+    "logging": { // optional
         "papertrail": {
             "enabled": false,
             "host": "papertraihost",
