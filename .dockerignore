@@ -1,0 +1,7 @@
+node_modules
+test
+nyc_output
+coverage
+config/config.yaml
+database/*
+docker-compose.yaml
