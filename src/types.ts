@@ -1,22 +1,72 @@
-import { DAO } from './db/DAO';
-
 export interface TransactionRow {
+    timestamp?: number;
     date: string;
     action: string;
     recipient: string;
-    txhash: string;
+    memo?: string; // transaction hash to be shown on bitcoin.tax
     volume: number;
     symbol: string;
-    price: number;
-    total: number;
+    price?: number;
+    total?: number;
     currency: string;
-    height: number;
+    txhash: string;
+    height?: number;
 }
 
-export abstract class Repository {
-    constructor(protected dao: DAO) {}
+export interface BitcoinTaxParams {
+    uri?: string;
+    txRow: TransactionRow;
+    headers?: { 'X-APIKEY': string; 'X-APISECRET': string };
+}
 
-    abstract createTable(): Promise<unknown>;
+export interface PriceApiParams {
+    timestamp: number;
+    currency: string;
+    headers: { authorization: string };
+    rootUri: string;
+}
 
-    abstract create(row: any): Promise<unknown>;
+// Config
+
+export interface AddressConfig {
+    address: string;
+    currency: string;
+    recordCoinbase?: boolean;
+    recordNonCoinbase?: boolean;
+}
+
+export interface FactomdConfig {
+    host: string;
+    port: number;
+    path: string;
+    protocol: string;
+    user?: string;
+    password?: string;
+}
+
+export interface BitcoinTaxConfig {
+    key: string;
+    secret: string;
+}
+
+export interface CryptocompareConfig {
+    secret: string;
+}
+
+export interface OptionsConfig {
+    startHeight: number;
+    minTime: number;
+}
+
+export interface Config {
+    factomd: Partial<FactomdConfig>;
+    addresses: AddressConfig[];
+    bitcoinTax: Partial<BitcoinTaxConfig>;
+    cryptocompare: CryptocompareConfig;
+    options: OptionsConfig;
+}
+
+export interface Heights {
+    startHeight: number;
+    stopHeight?: number;
 }
