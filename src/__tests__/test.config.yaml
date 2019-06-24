@@ -1,0 +1,33 @@
+factomd:
+    host: api.factomd.net
+    port: 443
+    path: /v2
+    protocol: https
+
+# Secrets and keys are fake. Don't bother trying it.
+cryptocompare:
+    secret: e184152170b306505c163cc2d7204ca48fa7fb40a1fc7d95a126d7d8ef7d7f79
+
+bitcoinTax:
+    key: d060a8eabe299f30
+    secret: 49bbab12646601b43406fce63f12470d
+
+addresses:
+    - address: FA3cKmuSbVDgfwEnTh3UBnAdqMEz5hcMcqGDpjgW12BCu5zGPJLN
+      currency: GBP
+      recordCoinbase: true
+      recordNonCoinbase: false
+
+    - address: FA3nzKANkxznFh6jTwcQ7YvuZqRdqxfEvKispXLhkRxCEZmr9F8H
+      currency: EUR
+      recordCoinbase: true
+      recordNonCoinbase: false
+
+    - address: FA2MkefUkQLt3yuWgPBYP4acwGVZgAanqK8p4hkDgXv6VkMfJR9W
+      currency: USD
+      recordCoinbase: false
+      recordNonCoinbase: true
+
+options:
+    startHeight: 143400
+    minTime: 100
