@@ -1,0 +1,43 @@
+# Defaults to OpenNode. Initial sync will be much faster if done with local node.
+factomd:
+    host: api.factomd.net
+    port: 443
+    path: /v2
+    protocol: https
+    # user: 'alice', # RPC basic authentication
+    # password: 'pwd',
+
+# Get your cryptocompare API credentials at https://min-api.cryptocompare.com/
+cryptocompare:
+    secret: e184152170b306505c163cc2d7204ca48fa7fb40a1fc7d95a126d7d8ef7d7f79
+
+# Get your bitcoin.tax API credentials at https://bitcoin.tax/
+bitcoinTax:
+    # Leave the key and secret blank to skip bitcoin.tax
+    key: d060a8eabe299f30
+    secret: 49bbab12646601b43406fce63f12470d
+
+# Monitor as many addresses as you like using the format below. 
+addresses:
+    - address: FA3cKmuSbVDgfwEnTh3UBnAdqMEz5hcMcqGDpjgW12BCu5zGPJLN
+      currency: GBP
+      recordCoinbase: true
+      recordNonCoinbase: false
+
+    - address: FA3nzKANkxznFh6jTwcQ7YvuZqRdqxfEvKispXLhkRxCEZmr9F8H
+      currency: EUR
+      recordCoinbase: true
+      recordNonCoinbase: false
+
+    - address: FA2MkefUkQLt3yuWgPBYP4acwGVZgAanqK8p4hkDgXv6VkMfJR9W
+      currency: USD
+      recordCoinbase: false
+      recordNonCoinbase: true
+
+options:
+    # Height from which you would like to begin looking for factoid receipts for the first scan.
+    # Defaults to start of M3.
+    startHeight: 143400
+    # Cryptocompare rate limits requests and bitcoin.tax will error if requests they are made too quickly.
+    # This field is the minimum time in ms to leave between each request. Increase it if you see warnings or dropped requests in the logs.
+    minTime: 100
