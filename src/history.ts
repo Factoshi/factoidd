@@ -44,6 +44,7 @@ export const scanBlockchain = async (heights: Heights) => {
         factomEvent.forceNewDirectoryBlock(directoryBlock);
     }
     info(`Scan complete`);
+    info('Still listening for new transactions...');
 };
 
 export const fetchHistoricalTransactions = asyncCompose(
