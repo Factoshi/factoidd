@@ -6,3 +6,5 @@ docker-compose.yaml
 Dockerfile
 jest.config.js
 __tests__
+factoidd
+start-container
