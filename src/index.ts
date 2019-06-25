@@ -4,7 +4,7 @@ import { factomEvent } from './init';
 import { saveRowToBitcoinTax } from './bitcoin.tax';
 import { buildRow, logNewRow } from './transactionRow';
 import { AddressConfig } from './types';
-import { writeRowToCsv } from './csv';
+import { appendRowToCsv } from './csv';
 import { fetchHistoricalTransactions, saveHeight } from './history';
 import { info, logError } from './utils';
 
@@ -51,8 +51,7 @@ const createTransactionListener = (conf: AddressConfig) => {
         if (txRow.volume > 0) {
             // Highest risk write comes first. If that fails the application will quit to protect state.
             await saveRowToBitcoinTax(txRow);
-            await writeRowToCsv(txRow);
-            logNewRow(txRow);
+                await appendRowToCsv(txRow);
             // Height only saved after a new block has been successfully processed.
             saveHeight(txRow.height! + 1);
         }

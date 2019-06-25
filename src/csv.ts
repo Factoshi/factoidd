@@ -29,7 +29,7 @@ export const writeCsvRow = (txRow: TransactionRow) => {
     appendFileSync(csvPath, csvRow);
 };
 
-export const writeRowToCsv = compose(
+export const appendRowToCsv = compose(
     removeUnwantedFields,
     createCsvFile,
     writeCsvRow
