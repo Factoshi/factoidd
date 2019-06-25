@@ -30,7 +30,7 @@ const exitError = async (error: Error) => {
 };
 process.on('SIGTERM', exitGracefully);
 process.on('SIGINT', exitGracefully);
-process.on('unhandledRejection', async (reason, promise) => {
+process.on('unhandledRejection', (reason, promise) => {
     // This should never run.
     logError('Unhandled Rejection at:', promise, 'reason:', reason);
     exit(1);
