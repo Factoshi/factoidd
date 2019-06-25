@@ -6,39 +6,26 @@ import { buildRow, logNewRow } from './transactionRow';
 import { AddressConfig } from './types';
 import { appendRowToCsv } from './csv';
 import { fetchHistoricalTransactions, saveHeight } from './history';
-import { info, logError } from './utils';
+import { info, logError, exitGracefully, wait, exitError } from './utils';
 
-/**********************/
-/*      Process       */
-/**********************/
+/********************************/
+/*      Process Listeners       */
+/********************************/
 
-// Prevent listeners from accepting new events prior to exit
-const exit = async (code: number) => {
+const shutdownListeners = () => {
     factomEvent.removeAllListeners();
-    // wait to ensure that the running listeners have had a chance to finish.
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    process.exit(code);
+    return wait(100);
 };
-const exitGracefully = () => {
-    info('Shutting down...');
-    exit(0);
-};
-const exitError = (error: Error) => {
-    logError(error);
-    logError('Exiting to protect state');
-    exit(1);
-};
-process.on('SIGTERM', exitGracefully);
-process.on('SIGINT', exitGracefully);
-process.on('unhandledRejection', (reason, promise) => {
-    // This should never run.
-    logError('Unhandled Rejection at:', promise, 'reason:', reason);
-    exit(1);
+process.on('SIGTERM', () => exitGracefully(shutdownListeners));
+process.on('SIGINT', () => exitGracefully(shutdownListeners));
+process.on('unhandledRejection', (_, promise) => {
+    logError(`Unhandled Rejection at:`, promise);
+    process.exit(1);
 });
 
-/****************************/
-/*      Event Emitter       */
-/****************************/
+/***********************************/
+/*      Transaction Handlers       */
+/***********************************/
 
 /**
  * Creates a transaction listener which handles all new and old transactions.

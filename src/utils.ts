@@ -43,3 +43,29 @@ export const warn = (...args: any[]) => {
 export const logError = (...args: any[]) => {
     console.error(...args);
 };
+
+/******************/
+/*      Exit      */
+/******************/
+
+// Allow async callback to be handled before exiting. Useful for cleaning up listeners.
+export const exitGracefully = async (cb?: () => void | Promise<any>) => {
+    info('Shutting down...');
+    if (cb) {
+        await cb();
+    }
+    process.exit(0);
+};
+
+export const exitError = async (error: Error) => {
+    logError(error);
+    logError('Exiting to protect state');
+    process.exit(1);
+};
+
+/*********************/
+/*      General      */
+/*********************/
+
+export const wait = (ms: number) =>
+    new Promise(resolve => setTimeout(() => resolve(), ms));
