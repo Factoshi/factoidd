@@ -1,7 +1,8 @@
 node_modules
-test
-nyc_output
 coverage
-config/config.yaml
+config/*
 database/*
 docker-compose.yaml
+Dockerfile
+jest.config.js
+__tests__
