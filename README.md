@@ -1,6 +1,6 @@
 # Factoidd
 
-Fatoidd tracks factoid receipts in a fiat currency of your choice. The script will output a CSV and, optionally, will also push transactions to the cryptocurrency accounting website https://bitcoin.tax. Factoidd listens for new receipts and will backfil historical receipts to a block height of your choice.
+Fatoidd tracks factoid receipts in a fiat currency of your choice. Factoidd will output a CSV and, optionally, will also push transactions to the cryptocurrency accounting website https://bitcoin.tax. Factoidd listens for new receipts and will backfil historical receipts to a block height of your choice.
 
 Factoidd can be pulled directly from Docker Hub and run as a container. It also works well as a standalone daemon, or can be run as needed to fill missing transactions.
 
@@ -44,7 +44,7 @@ docker run -d --name factoidd \
 
 Check your docker logs to make sure factoidd is configured correctly.
 
-### NodeJS
+### Node.js
 
 Clone this repo and cd into the project.
 
@@ -55,7 +55,7 @@ cd factoidd
 
 Create a config file and place it in the config directory. An example config is already in place, or you can view it [here](config/config.yaml.example).
 
-Next, install the project dependencies and build from the source code.
+Next, install the project dependencies and build from the source code:
 
 ```
 npm install --production
@@ -68,7 +68,7 @@ And that's it. Run the daemon with:
 node factoidd
 ```
 
-If you wish to run factoidd as a background process, you may wish to consider [PM2](http://pm2.keymetrics.io/) or systemd.
+If you want to run factoidd as a background process, you may consider using [PM2](http://pm2.keymetrics.io/) or systemd.
 
 ## Development
 
