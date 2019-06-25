@@ -3,3 +3,5 @@ node_modules
 coverage
 config/*.yaml
 docker-compose.yaml
+factoidd
+start-container
