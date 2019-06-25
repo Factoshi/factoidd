@@ -7,7 +7,7 @@ Factoidd can be pulled directly from Docker Hub and run as a container. It also 
 ## Requirements
 
 -   A Cryptocompare API key. Get your key here: https://min-api.cryptocompare.com/. There is a free tier.
--   Either Docker or a recent version of NodeJS.
+-   Either Docker or a recent version of Node.js.
 -   Optional: a bitcoin.tax account.
 
 ## Installation
