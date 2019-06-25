@@ -55,7 +55,7 @@ cd factoidd
 
 Create a config file and place it in the config directory. An example config is already in place, or you can view it [here](config/config.yaml.example).
 
-Next, install the project dependencies and build from the source code:
+Next, install the project dependencies and build from the source code.
 
 ```
 npm install --production
