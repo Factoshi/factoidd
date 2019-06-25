@@ -7,7 +7,9 @@
         "test": "jest",
         "build": "tsc",
         "start": "node factoidd",
-        "docker-build": "docker build -t factoshi/factoidd:develop ."
+        "docker-build": "docker build -t factoshi/factoidd:develop .",
+        "docker-push": "docker push factoshi/factoidd:develop",
+        "docker-deploy": "docker build -t factoshi/factoidd:develop . && docker push factoshi/factoidd:develop"
     },
     "repository": {
         "type": "git",
