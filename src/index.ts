@@ -45,7 +45,7 @@ const createTransactionListener = (conf: AddressConfig) => {
                 logNewRow(txRow);
             }
         } catch (err) {
-            logError(`application failed at transaction: ${tx.id}.`);
+            logError(`Error: Application failed at transaction: ${tx.id}.`);
             exitError(err);
         }
     };
