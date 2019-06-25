@@ -35,8 +35,8 @@ export const scanBlockchain = async (heights: Heights) => {
         if (i % 1000 === 0) {
             info('Scanning block height', i);
         }
-        // Ensue diretory blocks are fetched roughly in sync with the rate limited other API
-        // methods. This is born of paranoia of race conditions and memory limits, but does not address
+        // Ensure diretory blocks are fetched roughly in sync with the rate limited API
+        // methods. This is due to paranoia of race conditions and memory limits, but does not address
         // any known bug at the time of writing.
         const directoryBlock = await limiter.schedule(() => cli.getDirectoryBlock(i));
         // Force the event emitter to treat an old directory block as if it were new.
