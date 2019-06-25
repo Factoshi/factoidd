@@ -1,30 +1,30 @@
 {
-    "name": "factoid-address-monitord",
+    "name": "factoidd",
     "version": "3.0.0",
-    "description": "Accounting tool for factoid addresses.",
-    "main": "index.js",
+    "description": "Fatoidd tracks factoid receipts in a fiat currency of your choice.",
+    "main": "build/index.js",
     "scripts": {
         "test": "jest",
         "build": "tsc",
-        "start": "node src",
-        "docker-build": "docker build -t factoshi/factoid-accounts:develop ."
+        "start": "node factoidd",
+        "docker-build": "docker build -t factoshi/factoidd:develop ."
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/Factoshi/factoid-address-monitord.git"
+        "url": "git+https://github.com/Factoshi/factoidd.git"
     },
     "keywords": [
         "factom",
         "factoid",
-        "accounting",
+        "factoidd",
         "factoshi"
     ],
     "author": "Alex Carrithers",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/Factoshi/factoid-address-monitord/issues"
+        "url": "https://github.com/Factoshi/factoidd/issues"
     },
-    "homepage": "https://github.com/Factoshi/factoid-address-monitord#readme",
+    "homepage": "https://github.com/Factoshi/factoidd#readme",
     "dependencies": {
         "@hapi/joi": "^15.1.0",
         "@types/hapi__joi": "^15.0.2",
