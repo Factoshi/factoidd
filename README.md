@@ -12,8 +12,6 @@ Factoidd can be pulled directly from Docker Hub and run as a container. It also 
 
 ## Installation
 
----
-
 ### Docker (recommended)
 
 Set up the directory structure on your host machine.
@@ -46,8 +44,6 @@ docker run -d --name factoidd \
 
 Check your docker logs to make sure factoidd is configured correctly.
 
----
-
 ### NodeJS
 
 Clone this repo and cd into the project.
@@ -73,8 +69,6 @@ node factoidd
 ```
 
 If you wish to run factoidd as a background process, you may wish to consider [PM2](http://pm2.keymetrics.io/) or systemd.
-
----
 
 ## Development
 
