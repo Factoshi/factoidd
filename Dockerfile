@@ -15,7 +15,7 @@ COPY ./ ./
 
 RUN npm run build
 
-CMD ["node", "src"]
+CMD ["node", "factoidd"]
 
 VOLUME [ "/config" ]
 
