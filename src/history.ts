@@ -32,7 +32,7 @@ export const logScanStart = ({ startHeight, stopHeight }: Heights) => {
 export const scanBlockchain = async (heights: Heights) => {
     const limiter = new Bottleneck({ minTime: config.options.minTime });
     for (let i = heights.startHeight; i <= heights.stopHeight!; i++) {
-        if (i % 100 === 0) {
+        if (i % 1000 === 0) {
             info('Scanning block height', i);
         }
         // Ensue diretory blocks are fetched roughly in sync with the rate limited other API
