@@ -6,7 +6,7 @@ import { config } from './init';
 import { asyncCompose, warn } from './utils';
 import { Config, TransactionRow, PriceApiParams } from './types';
 
-axiosRetry(axios, { retries: 5, retryDelay: exponentialDelay });
+axiosRetry(axios, { retries: 2, retryDelay: exponentialDelay });
 
 export const getPriceAPIParams = (conf: Config) => {
     const { secret } = conf.cryptocompare;

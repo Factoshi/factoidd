@@ -5,7 +5,7 @@ import { Config, TransactionRow, BitcoinTaxParams } from './types';
 import { asyncCompose, info } from './utils';
 import Bottleneck from 'bottleneck';
 
-axiosRetry(axios, { retries: 5, retryDelay: exponentialDelay });
+axiosRetry(axios, { retries: 2, retryDelay: exponentialDelay });
 
 export const removeUnwantedFields = (txRow: TransactionRow): TransactionRow => {
     const { height, timestamp, ...rest } = txRow;
