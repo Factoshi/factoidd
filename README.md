@@ -21,7 +21,7 @@ mkdir factoidd && cd factoidd
 mkdir config && mkdir database
 ```
 
-Next, create a config.yaml file and place it in the config directory. An example configuration file can be found [here](config/config.yaml.example).
+Next, create a config.yaml file and place it in the config directory. An example configuration file can be found [here](config/config.EXAMPLE.yaml).
 
 When you're done, your directory structure should look like this:
 
