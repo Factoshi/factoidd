@@ -36,7 +36,7 @@ export const getBitcoinTaxCall = (conf: Config) => {
 
 export const handleBitcoinTaxResponse = (response: AxiosResponse<any> | undefined) => {
     if (response && response.data.status !== 'success') {
-        throw new Error(JSON.stringify(response.data));
+        throw new Error(response.data.data.message);
     }
 };
 
