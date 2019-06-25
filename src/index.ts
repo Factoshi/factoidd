@@ -19,11 +19,11 @@ const exit = async (code: number) => {
     await new Promise(resolve => setTimeout(resolve, 1000));
     process.exit(code);
 };
-const exitGracefully = async () => {
+const exitGracefully = () => {
     info('Shutting down...');
     exit(0);
 };
-const exitError = async (error: Error) => {
+const exitError = (error: Error) => {
     logError(error);
     logError('Exiting to protect state');
     exit(1);
@@ -46,14 +46,20 @@ process.on('unhandledRejection', (reason, promise) => {
  */
 const createTransactionListener = (conf: AddressConfig) => {
     return async (tx: Transaction) => {
-        const txRow = await buildRow({ tx, conf });
-        // Tranactions with 0 volume do not meet the criteria set out in the conf and are thus ignored.
-        if (txRow.volume > 0) {
-            // Highest risk write comes first. If that fails the application will quit to protect state.
-            await saveRowToBitcoinTax(txRow);
+        try {
+            const txRow = await buildRow({ tx, conf });
+            // Tranactions with 0 volume do not meet the criteria set out in the conf and are thus ignored.
+            if (txRow.volume > 0) {
+                // Highest risk write comes first. If that fails the application will quit to protect state.
+                await saveRowToBitcoinTax(txRow);
                 await appendRowToCsv(txRow);
-            // Height only saved after a new block has been successfully processed.
-            saveHeight(txRow.height! + 1);
+                // Height only saved after a new block has been successfully processed.
+                saveHeight(txRow.height! + 1);
+                logNewRow(txRow);
+            }
+        } catch (err) {
+            logError(`application failed at transaction: ${tx.id}.`);
+            exitError(err);
         }
     };
 };
