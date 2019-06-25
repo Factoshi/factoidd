@@ -1,4 +1,4 @@
-# Defaults to OpenNode. Initial sync will be much faster if done with local node.
+# Defaults to OpenNode. 
 factomd:
     host: api.factomd.net
     port: 443
@@ -38,6 +38,6 @@ options:
     # Height from which you would like to begin looking for factoid receipts for the first scan.
     # Defaults to start of M3.
     startHeight: 143400
-    # Cryptocompare rate limits requests and bitcoin.tax will error if requests they are made too quickly.
+    # Cryptocompare rate limits requests and bitcoin.tax will error if requests are made too quickly.
     # This field is the minimum time in ms to leave between each request. Increase it if you see warnings or dropped requests in the logs.
     minTime: 100
