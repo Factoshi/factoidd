@@ -11,9 +11,9 @@ factomd:
 cryptocompare:
     secret: e184152170b306505c163cc2d7204ca48fa7fb40a1fc7d95a126d7d8ef7d7f79
 
-# Get your bitcoin.tax API credentials at https://bitcoin.tax/
+# Get your bitcoin.tax API credentials at https://bitcoin.tax/.
+# Comment this section out to skip bitcoin.tax
 bitcoinTax:
-    # Leave the key and secret blank to skip bitcoin.tax
     key: d060a8eabe299f30
     secret: 49bbab12646601b43406fce63f12470d
 
