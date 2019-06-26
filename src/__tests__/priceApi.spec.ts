@@ -2,10 +2,12 @@ import { config } from '../init';
 import {
     getPriceAPIParams,
     getPriceAPIMethod,
-    handlePriceApiResponse
+    handlePriceApiResponse,
+    setTimeframe
 } from '../priceApi';
-import { TransactionRow } from '../types';
+import { TransactionRow, PriceApiParams } from '../types';
 import axios from 'axios';
+import { toInteger } from '../utils';
 
 jest.mock('axios');
 
@@ -17,16 +19,53 @@ test('should get price API params', () => {
         timestamp: 100,
         currency: 'GBP',
         headers,
+        rootUri: 'https://min-api.cryptocompare.com/data/'
+    });
+});
+
+test('should set the time period to minute for a transaction under 1 week old', () => {
+    const sixDaysAgo = toInteger(Date.now() / 1000 - 518400);
+    const headers = { authorization: config.cryptocompare.secret };
+    const params = setTimeframe({
+        timestamp: sixDaysAgo,
+        headers,
+        currency: 'GBP',
+        rootUri: 'https://min-api.cryptocompare.com/data/'
+    } as PriceApiParams);
+    expect(params).toEqual({
+        timestamp: sixDaysAgo,
+        headers,
+        currency: 'GBP',
+        rootUri: 'https://min-api.cryptocompare.com/data/histominute?'
+    });
+});
+
+test('should set the time period to hour for a transaction that is at least 1 week old', () => {
+    const sevenDaysAgo = toInteger(Date.now() / 1000 - 608400);
+    const headers = { authorization: config.cryptocompare.secret };
+    const params = setTimeframe({
+        timestamp: sevenDaysAgo,
+        headers,
+        currency: 'GBP',
+        rootUri: 'https://min-api.cryptocompare.com/data/'
+    } as PriceApiParams);
+    expect(params).toEqual({
+        timestamp: sevenDaysAgo,
+        headers,
+        currency: 'GBP',
         rootUri: 'https://min-api.cryptocompare.com/data/histohour?'
     });
 });
 
 test('should call axios.get with the correct URL', async () => {
-    const addParams = getPriceAPIParams(config);
-    const params = addParams({ timestamp: 100, currency: 'GBP' } as TransactionRow);
     const getPrice = getPriceAPIMethod(config);
-    await getPrice(params);
     const headers = { authorization: config.cryptocompare.secret };
+    await getPrice({
+        timestamp: 100,
+        currency: 'GBP',
+        headers,
+        rootUri: 'https://min-api.cryptocompare.com/data/histohour?'
+    });
     expect(axios.get).toHaveBeenCalledWith(
         'https://min-api.cryptocompare.com/data/histohour?fsym=FCT&tsym=GBP&limit=1&toTs=100',
         { headers }
