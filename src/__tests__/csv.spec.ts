@@ -1,14 +1,20 @@
-import { resolveCsvPath, removeUnwantedFields, createCsvFile, writeCsvRow } from '../csv';
+import {
+    resolveDirPATH,
+    removeUnwantedFields,
+    writeCsvRow,
+    resolveCSVFile,
+    createFile
+} from '../csv';
 import { resolve } from 'path';
 import { TransactionRow } from '../types';
 import { generateRandomFctAddress } from 'factom';
 import { randomBytes } from 'crypto';
 import { mocked } from 'ts-jest/utils';
-import { existsSync, appendFileSync } from 'fs';
+import { existsSync, appendFileSync, mkdirSync } from 'fs';
 
 jest.mock('fs');
 
-const transactionRow: TransactionRow = {
+const txRow: TransactionRow = {
     timestamp: 100,
     date: '2018-07-05',
     action: 'INCOME',
@@ -22,32 +28,75 @@ const transactionRow: TransactionRow = {
     txhash: randomBytes(32).toString('hex'),
     height: 100000
 };
-Object.freeze(transactionRow);
+Object.freeze(txRow);
 
-const PATH = resolve(__dirname, '../../database/', transactionRow.recipient + '.csv');
+test('should resolve the directory path', () => {
+    const path = resolveDirPATH('income');
+    expect(path).toBe(resolve(__dirname, '../../database/income'));
+});
 
-test('should resolve the CSV path', () => {
-    const path = resolveCsvPath(transactionRow);
-    expect(path).toBe(PATH);
+test('should resolve the CSV file path', () => {
+    const result = resolve(
+        __dirname,
+        '../../database/income/' + txRow.recipient + '.csv'
+    );
+    const path = resolveDirPATH('income');
+    const csvFilePath = resolveCSVFile(path, txRow);
+    expect(csvFilePath).toBe(result);
 });
 
 test('should remove memo and timestamp fields', () => {
-    const rowWithoutFields = removeUnwantedFields(transactionRow);
-    const { memo, timestamp, ...rest } = transactionRow;
+    const rowWithoutFields = removeUnwantedFields(txRow);
+    const { memo, timestamp, ...rest } = txRow;
     expect(rowWithoutFields).toEqual({ ...rest });
 });
 
-test('should create the csv file', () => {
+test('should create an incoming directory and csv', () => {
     mocked(existsSync).mockReturnValue(false);
-    const csvHeader = Object.keys(transactionRow).join(',') + '\n';
-    const txRow = createCsvFile(transactionRow);
-    expect(existsSync).toHaveBeenCalledWith(PATH);
-    expect(appendFileSync).toHaveBeenCalledWith(PATH, csvHeader);
-    expect(txRow).toBe(transactionRow);
+    const dirPath = resolve(__dirname, '../../database/income');
+    const csvFile = resolve(
+        __dirname,
+        '../../database/income/',
+        txRow.recipient + '.csv'
+    );
+    const row = createFile(txRow);
+    expect(row).toEqual(txRow);
+    expect(existsSync).toHaveBeenNthCalledWith(1, dirPath);
+    expect(existsSync).toHaveBeenNthCalledWith(2, csvFile);
+    expect(mkdirSync).toHaveBeenCalledWith(dirPath);
+    expect(appendFileSync).toHaveBeenCalledWith(
+        csvFile,
+        Object.keys(txRow).join(',') + '\n'
+    );
+});
+
+test('should create an incoming csv but not directory', () => {
+    mocked(existsSync).mockReturnValueOnce(true);
+    mocked(existsSync).mockReturnValueOnce(false);
+    const dirPath = resolve(__dirname, '../../database/income');
+    const csvFile = resolve(
+        __dirname,
+        '../../database/income/',
+        txRow.recipient + '.csv'
+    );
+    const row = createFile(txRow);
+    expect(row).toEqual(txRow);
+    expect(existsSync).toHaveBeenNthCalledWith(1, dirPath);
+    expect(existsSync).toHaveBeenNthCalledWith(2, csvFile);
+    expect(mkdirSync).not.toHaveBeenCalledWith(dirPath);
+    expect(appendFileSync).toHaveBeenCalledWith(
+        csvFile,
+        Object.keys(txRow).join(',') + '\n'
+    );
 });
 
 test('should write to the csv file', () => {
-    const csvRow = Object.values(transactionRow).join(',') + '\n';
-    writeCsvRow(transactionRow);
-    expect(appendFileSync).toHaveBeenCalledWith(PATH, csvRow);
+    const csvFile = resolve(
+        __dirname,
+        '../../database/income/',
+        txRow.recipient + '.csv'
+    );
+    const csvRow = Object.values(txRow).join(',') + '\n';
+    writeCsvRow(txRow);
+    expect(appendFileSync).toHaveBeenCalledWith(csvFile, csvRow);
 });
