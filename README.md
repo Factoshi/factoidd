@@ -39,7 +39,7 @@ Finally, pull the image and create a container. Check you have the latest versio
 docker run -d --name factoidd \
     -v /path/to/your/factoidd/config:/app/config \
     -v /path/to/your/factoidd/database:/app/database \
-    factoshi/factoidd:v3.0.0-alpine
+    factoshi/factoidd:v3.0.1
 ```
 
 Check your docker logs to make sure factoidd is configured correctly.
