@@ -40,4 +40,4 @@ options:
     startHeight: 143400
     # Cryptocompare rate limits requests and bitcoin.tax will error if requests are made too quickly.
     # This field is the minimum time in ms to leave between each request. Increase it if you see warnings or dropped requests in the logs.
-    minTime: 100
+    minTime: 500

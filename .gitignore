@@ -4,4 +4,4 @@ coverage
 config/config.yaml
 docker-compose.yaml
 factoidd
-start-container
+*.env
