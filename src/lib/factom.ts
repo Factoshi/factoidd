@@ -1,5 +1,6 @@
 import { FactomEventEmitter, FactomCli, DirectoryBlock } from 'factom';
-import { Config } from './config';
+import { FactomdConfig } from './types';
+import { logger } from './logger';
 
 class CustomFactomEventEmitter extends FactomEventEmitter {
     /**
@@ -13,14 +14,25 @@ class CustomFactomEventEmitter extends FactomEventEmitter {
     }
 }
 
-class Factom {
+export class Factom {
     public cli: FactomCli;
     public event: CustomFactomEventEmitter;
 
-    constructor() {
-        this.cli = new FactomCli(Config.factomd);
+    constructor(config: FactomdConfig) {
+        this.cli = new FactomCli(config);
         this.event = new CustomFactomEventEmitter(this.cli);
     }
-}
 
-export const factom = new Factom();
+    /**
+     * Ensures factomd connection parameters are valid. Exits if contact cannot be made.
+     */
+    public async testConnection() {
+        try {
+            logger.info('Testing factomd connection');
+            await this.cli.getHeights();
+        } catch (e) {
+            logger.error('Could not contact factomd: ', e);
+            process.exit(1);
+        }
+    }
+}

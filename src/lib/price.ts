@@ -1,7 +1,6 @@
 import { stringify } from 'querystring';
 import axiosRetry, { exponentialDelay } from 'axios-retry';
 import axios from 'axios';
-import { Config } from './config';
 import { toInteger } from './utils';
 
 import { TransactionTable } from './db';
@@ -10,7 +9,7 @@ import Bottleneck from 'bottleneck';
 
 axiosRetry(axios, { retries: 2, retryDelay: exponentialDelay });
 
-async function getPrice({ currency, timestamp }: { currency: string; timestamp: number }) {
+async function getPrice(currency: string, timestamp: number, secret: string) {
     // API can deliver per minute pricing if timestamp within past week, or hourly pricing
     // if timestamp was from before that.
     // prettier-ignore
@@ -25,7 +24,7 @@ async function getPrice({ currency, timestamp }: { currency: string; timestamp: 
         toTs: timestamp,
     });
     const uri = `https://min-api.cryptocompare.com/data/${timePrecision}?${queryString}`;
-    const headers = { authorization: `Apikey ${Config.cryptocompare.secret}` };
+    const headers = { authorization: `Apikey ${secret}` };
 
     // Fetch the pricing data.
     const response = await axios.get(uri, { headers });
@@ -45,12 +44,16 @@ async function getPrice({ currency, timestamp }: { currency: string; timestamp: 
 /**
  * Function fills in price data for all transactions in DB with missing data.
  */
-export async function batchUpdatePrice(txTable: TransactionTable, bottleneck: Bottleneck) {
+export async function batchUpdatePrice(
+    txTable: TransactionTable,
+    bottleneck: Bottleneck,
+    secret: string
+) {
     const nullPriceTransactions = await txTable.getTransactionsWithNullPrice();
     logger.info(`Fetching price data for ${nullPriceTransactions.length} transactions.`);
 
     for (let { rowid, currency, timestamp, txhash, height } of nullPriceTransactions) {
-        const price = await bottleneck.schedule(() => getPrice({ currency, timestamp }));
+        const price = await bottleneck.schedule(() => getPrice(currency, timestamp, secret));
 
         const msg = `Updating price for transaction ${txhash} at height ${height} to ${price} ${currency}`;
         logger.info(msg);

@@ -1,7 +1,9 @@
-import { join } from 'path';
 import commander from 'commander';
 import dotenv from 'dotenv';
-var pjson = require('../package.json');
+
+import { init } from './init';
+import { app } from './app';
+var pjson = require('../../package.json');
 
 // Load environment variables.
 const envFile = process.env.ENV_FILE || 'develop';
@@ -15,18 +17,16 @@ if (result.error) {
 const program = new commander.Command();
 
 program
+    // Set programme information
     .name(pjson.name)
     .version(pjson.version)
+    // create main options
     .option('-l, --loglvl <level>', 'log output level', process.env.LOG_LEVEL || 'info')
-    .option(
-        '--db <database>',
-        'path to database directory',
-        process.env.DB_PATH || join(__dirname, '..', 'database')
-    )
-    .option(
-        '-c, --config <config>',
-        'path to config directory',
-        process.env.CONFIG_PATH || join(__dirname, '..', 'config')
-    );
+    .action(({ loglvl }) => app(loglvl))
+    // Create the `init` subcommand
+    .command('init')
+    .description('initialise factoidd config')
+    .action(init);
 
-export { program };
+// Get command line args
+program.parse(process.argv);

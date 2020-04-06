@@ -1,6 +1,6 @@
 import axiosRetry, { exponentialDelay } from 'axios-retry';
 import axios from 'axios';
-import { Config } from './config';
+import { OptionsConfig } from './types';
 
 import { TransactionTable } from './db';
 import { logger } from './logger';
@@ -36,6 +36,11 @@ interface BitcoinTaxData {
     recipient: string;
 }
 
+interface Keys {
+    secret: string;
+    key: string;
+}
+
 function formatTranactionRow(txRow: TransactionRow): BitcoinTaxData {
     return {
         date: txRow.date,
@@ -50,8 +55,8 @@ function formatTranactionRow(txRow: TransactionRow): BitcoinTaxData {
     };
 }
 
-async function saveToBitcoinTax(data: BitcoinTaxData) {
-    const { key, secret } = Config.bitcoinTax;
+async function saveToBitcoinTax(data: BitcoinTaxData, keys: Keys) {
+    const { key, secret } = keys;
     var headers = { 'X-APIKEY': key, 'X-APISECRET': secret };
     var uri = 'https://api.bitcoin.tax/v1/transactions';
     await axios.post(uri, data, { headers });
@@ -60,22 +65,25 @@ async function saveToBitcoinTax(data: BitcoinTaxData) {
 /**
  * Function fills in price data for all transactions in DB with missing data.
  */
-export async function batchUpdateBitcoinTax(txTable: TransactionTable, bottleneck: Bottleneck) {
+export async function batchUpdateBitcoinTax(
+    txTable: TransactionTable,
+    bottleneck: Bottleneck,
+    keys: Keys
+) {
     const uncommittedTransactions = await txTable.getUncommittedTransactions();
-
     // Filter to get only income transactions with known price. This can be updated later if adding other action types.
     const transactions = uncommittedTransactions.filter((tx) => tx.receivedFCT > 0 && tx.price);
-
-    logger.info(`Committing ${uncommittedTransactions.length} transaction(s) to bitcoin.tax`);
+    logger.info(`Committing ${transactions.length} transaction(s) to bitcoin.tax`);
 
     for (let { rowid, ...rest } of transactions) {
         const data = formatTranactionRow(rest);
-        logger.info(`Committed transaction ${data.memo} to bitoin.tax`);
-        await bottleneck.schedule(() => saveToBitcoinTax(data));
+        await bottleneck.schedule(() => saveToBitcoinTax(data, keys));
         await txTable.updateBitcoinTax(rowid, true).catch((e) => {
-            // Failure to write to
-            logger.error('Fatal error: ', e);
+            // Failure to write to database after committing to bitcoin tax is a fatal
+            // error that cannot be recovered.
+            logger.error('Fatal error. Database has inconsistent state.\n', e);
             process.exit(1);
         });
+        logger.info(`Committed transaction ${data.memo} to bitoin.tax`);
     }
 }
