@@ -1,16 +1,22 @@
 {
     "name": "factoidd",
-    "version": "3.1.0",
+    "version": "4.0.0",
     "description": "Fatoidd tracks factoid receipts in a fiat currency of your choice.",
     "main": "build/index.js",
     "scripts": {
         "test": "jest",
         "build": "tsc",
-        "start:develop": "ENV_FILE=develop ts-node bin/main.ts",
-        "start:prod": "ENV_FILE=production node build/bin/main.js",
         "docker-build": "docker build -t factoshi/factoidd:develop .",
         "docker-push": "docker push factoshi/factoidd:develop",
-        "docker-deploy": "docker build -t factoshi/factoidd:develop . && docker push factoshi/factoidd:develop"
+        "docker-deploy": "docker build -t factoshi/factoidd:develop . && docker push factoshi/factoidd:develop",
+        "start:develop": "pm2 start ecosystem.config.js",
+        "restart:develop": "pm2 restart ecosystem.config.js",
+        "start": "pm2 start ecosystem.config.js --env production",
+        "restart": "pm2 restart ecosystem.config.js --env production",
+        "stop": "pm2 stop ecosystem.config.js",
+        "delete": "pm2 delete ecosystem.config.js",
+        "status": "pm2 status",
+        "logs": "pm2 logs --lines 50"
     },
     "repository": {
         "type": "git",
@@ -38,6 +44,7 @@
         "inquirer": "^7.1.0",
         "joi-factom": "^1.1.2",
         "js-yaml": "^3.13.1",
+        "pm2": "^4.2.3",
         "sqlite": "^4.0.5",
         "sqlite3": "^4.1.1",
         "winston": "^3.2.1"

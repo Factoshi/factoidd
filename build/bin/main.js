@@ -14,7 +14,7 @@ const result = dotenv_1.default.config({
     path: `./env/${envFile}.env`,
 });
 if (result.error) {
-    throw result.error;
+    console.log('No env file.');
 }
 const program = new commander_1.default.Command();
 program
