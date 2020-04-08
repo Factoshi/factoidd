@@ -3,5 +3,5 @@ node_modules
 coverage
 config/config.yaml
 docker-compose.yaml
-factoidd
 *.env
+build
