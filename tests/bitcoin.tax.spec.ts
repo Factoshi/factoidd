@@ -1,14 +1,9 @@
-import {
-    removeUnwantedFields,
-    getBitcoinTaxParams,
-    getBitcoinTaxCall
-} from '../bitcoin.tax';
+import { batchUpdateBitcoinTax } from '../src/lib/bitcointax';
 import { randomBytes } from 'crypto';
 import { generateRandomFctAddress } from 'factom';
-import { TransactionRow, Config } from '../types';
+import { TransactionRow } from '../src/lib/types';
 import axios from 'axios';
-
-jest.mock('axios');
+import sinon from 'sinon';
 
 const transactionRow: TransactionRow = {
     timestamp: 100,
@@ -22,9 +17,11 @@ const transactionRow: TransactionRow = {
     total: 102,
     currency: 'EUR',
     txhash: randomBytes(32).toString('hex'),
-    height: 100000
+    height: 100000,
 };
 Object.freeze(transactionRow);
+
+it();
 
 test('should remove height and timestamp fields', () => {
     const rowWithoutFields = removeUnwantedFields(transactionRow);
@@ -36,12 +33,12 @@ test('should get bitcoin.tax params with key and secret set', () => {
     const conf = {
         bitcoinTax: {
             key: randomBytes(8).toString('hex'),
-            secret: randomBytes(16).toString('hex')
-        }
+            secret: randomBytes(16).toString('hex'),
+        },
     };
     const headers = {
         'X-APISECRET': conf.bitcoinTax.secret,
-        'X-APIKEY': conf.bitcoinTax.key
+        'X-APIKEY': conf.bitcoinTax.key,
     };
     const uri = 'https://api.bitcoin.tax/v1/transactions';
     const paramFn = getBitcoinTaxParams(conf as Config);
@@ -54,7 +51,7 @@ test('should get bitcoin.tax params without key and secret set', () => {
     expect(paramFn(transactionRow)).toEqual({
         uri: undefined,
         txRow: transactionRow,
-        headers: undefined
+        headers: undefined,
     });
 });
 
@@ -64,7 +61,7 @@ test('should create bitcoin.tax method that should call axios', async () => {
     const uri = 'https://api.bitcoin.tax/v1/transactions';
     const headers = {
         'X-APISECRET': randomBytes(8).toString('hex'),
-        'X-APIKEY': randomBytes(16).toString('hex')
+        'X-APIKEY': randomBytes(16).toString('hex'),
     };
     await callBtFn({ uri, txRow: transactionRow, headers });
     expect(axios.post).toBeCalledWith(uri, transactionRow, { headers });

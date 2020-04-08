@@ -3,10 +3,10 @@ import {
     removeUnwantedFields,
     writeCsvRow,
     resolveCSVFile,
-    createFile
-} from '../csv';
+    createFile,
+} from '../src/lib/csv';
 import { resolve } from 'path';
-import { TransactionRow } from '../types';
+import { TransactionRow } from '../src/lib/types';
 import { generateRandomFctAddress } from 'factom';
 import { randomBytes } from 'crypto';
 import { mocked } from 'ts-jest/utils';
@@ -26,7 +26,7 @@ const txRow: TransactionRow = {
     total: 102,
     currency: 'EUR',
     txhash: randomBytes(32).toString('hex'),
-    height: 100000
+    height: 100000,
 };
 Object.freeze(txRow);
 
@@ -36,10 +36,7 @@ test('should resolve the directory path', () => {
 });
 
 test('should resolve the CSV file path', () => {
-    const result = resolve(
-        __dirname,
-        '../../database/income/' + txRow.recipient + '.csv'
-    );
+    const result = resolve(__dirname, '../../database/income/' + txRow.recipient + '.csv');
     const path = resolveDirPATH('income');
     const csvFilePath = resolveCSVFile(path, txRow);
     expect(csvFilePath).toBe(result);
@@ -54,48 +51,30 @@ test('should remove memo and timestamp fields', () => {
 test('should create an incoming directory and csv', () => {
     mocked(existsSync).mockReturnValue(false);
     const dirPath = resolve(__dirname, '../../database/income');
-    const csvFile = resolve(
-        __dirname,
-        '../../database/income/',
-        txRow.recipient + '.csv'
-    );
+    const csvFile = resolve(__dirname, '../../database/income/', txRow.recipient + '.csv');
     const row = createFile(txRow);
     expect(row).toEqual(txRow);
     expect(existsSync).toHaveBeenNthCalledWith(1, dirPath);
     expect(existsSync).toHaveBeenNthCalledWith(2, csvFile);
     expect(mkdirSync).toHaveBeenCalledWith(dirPath);
-    expect(appendFileSync).toHaveBeenCalledWith(
-        csvFile,
-        Object.keys(txRow).join(',') + '\n'
-    );
+    expect(appendFileSync).toHaveBeenCalledWith(csvFile, Object.keys(txRow).join(',') + '\n');
 });
 
 test('should create an incoming csv but not directory', () => {
     mocked(existsSync).mockReturnValueOnce(true);
     mocked(existsSync).mockReturnValueOnce(false);
     const dirPath = resolve(__dirname, '../../database/income');
-    const csvFile = resolve(
-        __dirname,
-        '../../database/income/',
-        txRow.recipient + '.csv'
-    );
+    const csvFile = resolve(__dirname, '../../database/income/', txRow.recipient + '.csv');
     const row = createFile(txRow);
     expect(row).toEqual(txRow);
     expect(existsSync).toHaveBeenNthCalledWith(1, dirPath);
     expect(existsSync).toHaveBeenNthCalledWith(2, csvFile);
     expect(mkdirSync).not.toHaveBeenCalledWith(dirPath);
-    expect(appendFileSync).toHaveBeenCalledWith(
-        csvFile,
-        Object.keys(txRow).join(',') + '\n'
-    );
+    expect(appendFileSync).toHaveBeenCalledWith(csvFile, Object.keys(txRow).join(',') + '\n');
 });
 
 test('should write to the csv file', () => {
-    const csvFile = resolve(
-        __dirname,
-        '../../database/income/',
-        txRow.recipient + '.csv'
-    );
+    const csvFile = resolve(__dirname, '../../database/income/', txRow.recipient + '.csv');
     const csvRow = Object.values(txRow).join(',') + '\n';
     writeCsvRow(txRow);
     expect(appendFileSync).toHaveBeenCalledWith(csvFile, csvRow);

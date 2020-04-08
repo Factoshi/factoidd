@@ -3,11 +3,11 @@ import {
     getPriceAPIParams,
     getPriceAPIMethod,
     handlePriceApiResponse,
-    setTimeframe
+    setTimeframe,
 } from '../priceApi';
-import { TransactionRow, PriceApiParams } from '../types';
+import { TransactionRow, PriceApiParams } from '../src/lib/types';
 import axios from 'axios';
-import { toInteger } from '../utils';
+import { toInteger } from '../src/lib/utils';
 
 jest.mock('axios');
 
@@ -19,7 +19,7 @@ test('should get price API params', () => {
         timestamp: 100,
         currency: 'GBP',
         headers,
-        rootUri: 'https://min-api.cryptocompare.com/data/'
+        rootUri: 'https://min-api.cryptocompare.com/data/',
     });
 });
 
@@ -30,13 +30,13 @@ test('should set the time period to minute for a transaction under 1 week old', 
         timestamp: sixDaysAgo,
         headers,
         currency: 'GBP',
-        rootUri: 'https://min-api.cryptocompare.com/data/'
+        rootUri: 'https://min-api.cryptocompare.com/data/',
     } as PriceApiParams);
     expect(params).toEqual({
         timestamp: sixDaysAgo,
         headers,
         currency: 'GBP',
-        rootUri: 'https://min-api.cryptocompare.com/data/histominute?'
+        rootUri: 'https://min-api.cryptocompare.com/data/histominute?',
     });
 });
 
@@ -47,13 +47,13 @@ test('should set the time period to hour for a transaction that is at least 1 we
         timestamp: sevenDaysAgo,
         headers,
         currency: 'GBP',
-        rootUri: 'https://min-api.cryptocompare.com/data/'
+        rootUri: 'https://min-api.cryptocompare.com/data/',
     } as PriceApiParams);
     expect(params).toEqual({
         timestamp: sevenDaysAgo,
         headers,
         currency: 'GBP',
-        rootUri: 'https://min-api.cryptocompare.com/data/histohour?'
+        rootUri: 'https://min-api.cryptocompare.com/data/histohour?',
     });
 });
 
@@ -64,9 +64,11 @@ test('should call axios.get with the correct URL', async () => {
         timestamp: 100,
         currency: 'GBP',
         headers,
-        rootUri: 'https://min-api.cryptocompare.com/data/histohour?'
+        rootUri: 'https://min-api.cryptocompare.com/data/histohour?',
     });
-    expect(axios.get).toHaveBeenCalledWith(
+    expect(
+        axios.get
+    ).toHaveBeenCalledWith(
         'https://min-api.cryptocompare.com/data/histohour?fsym=FCT&tsym=GBP&limit=1&toTs=100',
         { headers }
     );

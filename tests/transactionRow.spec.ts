@@ -3,9 +3,9 @@ import {
     filterAndSumOutputs,
     factoshisToFactoids,
     setInitialFields,
-    addPriceInfo
+    addPriceInfo,
 } from '../transactionRow';
-import { AddressConfig } from '../types';
+import { AddressConfig } from '../src/lib/types';
 import { fetchPrice } from '../priceApi';
 import { mocked } from 'ts-jest/utils';
 
@@ -23,8 +23,8 @@ const coinbaseTxMock = {
     factoidOutputs: [
         { address: addressA, amount: 100000000 },
         { address: addressA, amount: 200000000 },
-        { address: addressB, amount: 400000000 }
-    ]
+        { address: addressB, amount: 400000000 },
+    ],
 };
 
 const nonCoinbaseTxMock = {
@@ -33,8 +33,8 @@ const nonCoinbaseTxMock = {
     factoidOutputs: [
         { address: addressB, amount: 500000000 },
         { address: addressB, amount: 600000000 },
-        { address: addressA, amount: 700000000 }
-    ]
+        { address: addressA, amount: 700000000 },
+    ],
 };
 
 test('should filter and sum a coinbase transaction and return non zero number', () => {
@@ -56,7 +56,7 @@ test('should filter and sum a non coinbase transaction and return non zero numbe
     const config = { recordCoinbase: false, recordNonCoinbase: true, address: addressB };
     const params = {
         tx: nonCoinbaseTxMock as Transaction,
-        conf: config as AddressConfig
+        conf: config as AddressConfig,
     };
     const ownOutputs = filterAndSumOutputs(params);
     expect(ownOutputs).toBe(1100000000);
@@ -67,7 +67,7 @@ test('should filter and sum a coinbase transaction and return zero', () => {
     const config = { recordCoinbase: true, recordNonCoinbase: false, address: addressB };
     const params = {
         tx: nonCoinbaseTxMock as Transaction,
-        conf: config as AddressConfig
+        conf: config as AddressConfig,
     };
     const ownOutputs = filterAndSumOutputs(params);
     expect(ownOutputs).toBe(0);
@@ -83,7 +83,7 @@ test('should set initial fields of transaction row', () => {
     const config = { address: addressA, currency: 'GBP', recordCoinbase: true };
     const initialRow = setInitialFields({
         tx: coinbaseTxMock as Transaction,
-        conf: config as AddressConfig
+        conf: config as AddressConfig,
     });
     expect(initialRow).toEqual({
         timestamp: 1555799086,
@@ -95,7 +95,7 @@ test('should set initial fields of transaction row', () => {
         height: 10,
         symbol: 'FCT',
         volume: 3,
-        currency: 'GBP'
+        currency: 'GBP',
     });
 });
 
@@ -104,7 +104,7 @@ test('should add price data to row', async () => {
     const config = { address: addressA, currency: 'GBP', recordCoinbase: true };
     const initialRow = setInitialFields({
         tx: coinbaseTxMock as Transaction,
-        conf: config as AddressConfig
+        conf: config as AddressConfig,
     });
     const withPrice = await addPriceInfo(initialRow);
     expect(withPrice).toEqual({
@@ -119,6 +119,6 @@ test('should add price data to row', async () => {
         volume: 3,
         currency: 'GBP',
         total: 30,
-        price: 10
+        price: 10,
     });
 });

@@ -1,7 +1,7 @@
 import { randomBytes } from 'crypto';
 import { generateRandomFctAddress } from 'factom';
 import { validateConfig, parseConfig } from '../config';
-import { Config } from '../types';
+import { Config } from '../src/lib/types';
 
 const config: Config = {
     factomd: {
@@ -10,27 +10,27 @@ const config: Config = {
         path: '/v2',
         protocol: 'http',
         user: 'admin',
-        password: 'password'
+        password: 'password',
     },
     addresses: [
         {
             address: generateRandomFctAddress().public,
             currency: 'GBP',
             recordCoinbase: true,
-            recordNonCoinbase: false
-        }
+            recordNonCoinbase: false,
+        },
     ],
     bitcoinTax: {
         key: randomBytes(8).toString('hex'),
-        secret: randomBytes(16).toString('hex')
+        secret: randomBytes(16).toString('hex'),
     },
     cryptocompare: {
-        secret: randomBytes(32).toString('hex')
+        secret: randomBytes(32).toString('hex'),
     },
     options: {
         startHeight: 100,
-        minTime: 100
-    }
+        minTime: 100,
+    },
 };
 Object.freeze(config);
 
@@ -52,12 +52,12 @@ test('should fill in default options', () => {
                 address: generateRandomFctAddress().public,
                 currency: 'GBP',
                 recordCoinbase: true,
-                recordNonCoinbase: true
-            }
+                recordNonCoinbase: true,
+            },
         ],
         cryptocompare: {
-            secret: randomBytes(32).toString('hex')
-        }
+            secret: randomBytes(32).toString('hex'),
+        },
     };
     const validationResult = validateConfig(partialConfig);
     expect(validationResult.error).toBeNull();
@@ -67,13 +67,13 @@ test('should fill in default options', () => {
             host: 'api.factomd.net',
             port: 443,
             path: '/v2',
-            protocol: 'https'
+            protocol: 'https',
         },
         bitcoinTax: {},
         options: {
             minTime: 100,
-            startHeight: 143400
-        }
+            startHeight: 143400,
+        },
     });
 });
 
@@ -85,14 +85,14 @@ test('should return error if top level required values are missing', () => {
             message: '"addresses" is required',
             path: ['addresses'],
             type: 'any.required',
-            context: { key: 'addresses', label: 'addresses' }
+            context: { key: 'addresses', label: 'addresses' },
         },
         {
             message: '"cryptocompare" is required',
             path: ['cryptocompare'],
             type: 'any.required',
-            context: { key: 'cryptocompare', label: 'cryptocompare' }
-        }
+            context: { key: 'cryptocompare', label: 'cryptocompare' },
+        },
     ]);
 });
 
@@ -100,7 +100,7 @@ test('should return error if second level required values are missing', () => {
     const partialConfig = ({
         addresses: [],
         factomd: {},
-        cryptocompare: {}
+        cryptocompare: {},
     } as any) as Partial<Config>;
     const validationResult = validateConfig(partialConfig);
     expect(validationResult.error).toBeInstanceOf(Error);
@@ -109,37 +109,37 @@ test('should return error if second level required values are missing', () => {
             message: '"host" is required',
             path: ['factomd', 'host'],
             type: 'any.required',
-            context: { key: 'host', label: 'host' }
+            context: { key: 'host', label: 'host' },
         },
         {
             message: '"port" is required',
             path: ['factomd', 'port'],
             type: 'any.required',
-            context: { key: 'port', label: 'port' }
+            context: { key: 'port', label: 'port' },
         },
         {
             message: '"path" is required',
             path: ['factomd', 'path'],
             type: 'any.required',
-            context: { key: 'path', label: 'path' }
+            context: { key: 'path', label: 'path' },
         },
         {
             message: '"protocol" is required',
             path: ['factomd', 'protocol'],
             type: 'any.required',
-            context: { key: 'protocol', label: 'protocol' }
+            context: { key: 'protocol', label: 'protocol' },
         },
         {
             message: '"addresses" does not contain at least one required match',
             path: ['addresses'],
             type: 'array.hasUnknown',
-            context: { key: 'addresses', label: 'addresses' }
+            context: { key: 'addresses', label: 'addresses' },
         },
         {
             message: '"secret" is required',
             path: ['cryptocompare', 'secret'],
             type: 'any.required',
-            context: { key: 'secret', label: 'secret' }
-        }
+            context: { key: 'secret', label: 'secret' },
+        },
     ]);
 });
