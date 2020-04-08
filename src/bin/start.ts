@@ -3,16 +3,16 @@ import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import Bottleneck from 'bottleneck';
 
-import { Config } from './config';
 import {
+    Config,
     Factom,
     logger,
     AddressConfig,
-    createTransactionListener,
-    fetchNewTransactions,
+    saveNewTransaction,
+    emitNewTransactions,
     TransactionTable,
     batchUpdatePrice,
-    batchUpdateBitcoinTax,
+    batchUpdateIncome,
 } from '../lib';
 import { getConfigPath, getDatabasePath } from './init';
 
@@ -30,7 +30,7 @@ process.on('unhandledRejection', (_, promise) => {
 async function initialiseDatabase() {
     try {
         const filename = getDatabasePath();
-        logger.info(`Opening database connection at ${filename}`);
+        logger.info(`Opening database connection to ${filename}`);
         return open({ filename, driver: sqlite3.Database });
     } catch (e) {
         logger.error('Could not connect to database: ', e);
@@ -43,22 +43,18 @@ export function createProcessSavedTransactionsFunc(
     config: Config
 ) {
     return async () => {
-        const bottleneck = new Bottleneck({ minTime: 500 });
-
         try {
-            await batchUpdatePrice(transactionTable, bottleneck, config.options.cryptocompare);
-            if (config.options.bitcoinTax) {
-                const { bitcoinTaxKey: key, bitcoinTaxSecret: secret } = config.options;
-                await batchUpdateBitcoinTax(transactionTable, bottleneck, {
-                    secret,
-                    key,
-                });
+            const bottleneck = new Bottleneck({ minTime: 500 });
+            const { bitcoinTax, cryptocompare, startHeight, ...keys } = config.options;
+            await batchUpdatePrice(transactionTable, bottleneck, cryptocompare);
+            if (bitcoinTax) {
+                await batchUpdateIncome(transactionTable, bottleneck, keys);
             } else {
                 logger.debug('Skipping bitcoin.tax');
             }
         } catch (e) {
-            console.log(e);
-            logger.warn('Failed to finish processing transaction(s). Will try again later.', e);
+            logger.error('Error while processing new transactions\n', e);
+            logger.warn('Failed to finish processing transaction(s). Will try again later.');
         }
     };
 }
@@ -91,17 +87,20 @@ export async function app(level: string) {
     config.addresses.forEach((addressConf: AddressConfig) => {
         const { address } = addressConf;
         logger.info(`Listening for new transactions to address ${address}`);
-        factom.event.on(address, createTransactionListener(addressConf, transactionTable));
+        factom.event.on(address, (tx) => saveNewTransaction(addressConf, transactionTable, tx));
     });
 
     // Scan blockchain for new transactions.
     logger.info('Scanning blockchain for new transactions.');
     logger.warn('Transactions will be processed after the scan is complete.');
-    await fetchNewTransactions(transactionTable, config.options.startHeight, factom);
+    await emitNewTransactions(transactionTable, config.options.startHeight, factom);
 
     // Process all new found transactions.
-    logger.info('Processing all new transactions...');
+    logger.info('Processing new transactions...');
     const processSavedTransactions = createProcessSavedTransactionsFunc(transactionTable, config);
     await processSavedTransactions();
-    setInterval(() => processSavedTransactions, 600000); // Repeat processing once every 10 minutes.
+    setInterval(() => processSavedTransactions(), 600000); // Repeat processing once every 10 minutes.
 }
+
+// TODO: sort out testing
+// TODO: add CSV

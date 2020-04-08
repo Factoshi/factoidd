@@ -11,21 +11,12 @@ import { Factom } from './factom';
 
 axiosRetry(axios, { retries: 2, retryDelay: exponentialDelay });
 
-function sumFCTIO(inputsOutputs: TransactionAddress[], address: string) {
-    // prettier-ignore
-    return inputsOutputs
-        .filter((output) => output.address === address)
-        .reduce((total, current) => (total += current.amount), 0) * Math.pow(10, -8);
-}
-
-/**
- * Formats transaction and saves it to the DB.
- * @param tx The transaction to be saved.
- * @param conf The config for the address to which the transaction pertains.
- * @param txTable The database object to save the transaction.
- */
-function saveNewTransaction(tx: Transaction, conf: AddressConfig, txTable: TransactionTable) {
-    const txRow: TransactionRow = {
+function formatIncomeTransaction(
+    tx: Transaction,
+    conf: AddressConfig,
+    receivedFCT: number
+): TransactionRow {
+    return {
         address: conf.address,
         timestamp: toInteger(tx.timestamp / 1000),
         date: new Date(tx.timestamp).toISOString(),
@@ -33,34 +24,36 @@ function saveNewTransaction(tx: Transaction, conf: AddressConfig, txTable: Trans
         height: tx.blockContext.directoryBlockHeight,
         symbol: 'FCT',
         currency: conf.currency,
-        receivedFCT: sumFCTIO(tx.factoidOutputs, conf.address),
-        sentFCT: sumFCTIO(tx.inputs, conf.address),
-        isCoinbase: tx.totalFactoidOutputs === 0,
+        receivedFCT,
     };
+}
 
-    logger.debug(`Saving new transaction for address ${txRow.address} at block ${txRow.height}`);
-    return txTable.insertRawTransactionRow(txRow);
+function sumFCToutputs(transaction: Transaction, address: string) {
+    // prettier-ignore
+    return transaction.factoidOutputs
+        .filter((outputs) => outputs.address === address)
+        .reduce((total, current) => (total += current.amount), 0) * Math.pow(10, -8);
 }
 
 /**
  * Loops over past heights to fill in historical transaction data.
  */
-export async function fetchNewTransactions(
-    transactionTable: TransactionTable,
+export async function emitNewTransactions(
+    db: TransactionTable,
     configStartHeight: number,
     factom: Factom
 ) {
     try {
         // Find the maximum processed height.
-        const m = await transactionTable.getMaxHeight();
+        const m = await db.getMaxHeight();
         // If the config start height is ahead of the DB, we'll use that instead.
-        const maxHeight = m > configStartHeight ? m : configStartHeight;
+        const startHeight = m > configStartHeight ? m : configStartHeight;
         // Find the height at the tip of the blockchain.
         const { directoryBlockHeight: stopHeight } = await factom.cli.getHeights();
 
         // Loop over missing heights.
-        logger.info(`Fetching new tranactions between ${maxHeight} and ${stopHeight}`);
-        for (let i = maxHeight + 1; i <= stopHeight; i++) {
+        logger.info(`Fetching new tranactions between ${startHeight} and ${stopHeight}`);
+        for (let i = startHeight + 1; i <= stopHeight; i++) {
             if (i % 1000 === 0) logger.info(`Scanning block height: ${i}`);
 
             const directoryBlock = await factom.cli.getDirectoryBlock(i);
@@ -76,14 +69,34 @@ export async function fetchNewTransactions(
 }
 
 /**
- * Creates a transaction listener which handles all new and old transactions.
+ * Saves all relevant transactions.
  * @param {AddressConfig} conf Config for a specific address.
  */
-export function createTransactionListener(conf: AddressConfig, transactionTable: TransactionTable) {
-    return async function (tx: Transaction) {
-        await saveNewTransaction(tx, conf, transactionTable).catch((e) => {
-            logger.error(`Fatal error. Failed to save transaction to database: `, e);
-            process.exit(1);
-        });
-    };
+export function saveNewTransaction(conf: AddressConfig, db: TransactionTable, tx: Transaction) {
+    const { address, coinbase, nonCoinbase } = conf;
+    // Address may only record coinbase or non-coinbsae tranactions.
+    const isCoinbase = tx.totalInputs === 0;
+    if ((isCoinbase && !coinbase) || (!isCoinbase && !nonCoinbase)) {
+        return;
+    }
+
+    const received = sumFCToutputs(tx, address);
+    // Function only handles income transactions. If address did not received FCT then
+    // it was not an income transaction.
+    if (received === 0) {
+        return;
+    }
+
+    const txRow = formatIncomeTransaction(tx, conf, received);
+
+    // Save it to the database. This is a critical step and the programme will exit if it fails.
+    try {
+        logger.debug(
+            `Saving new transaction for address ${txRow.address} at block ${txRow.height}`
+        );
+        return db.insertUncommittedTransaction(txRow);
+    } catch (e) {
+        logger.error(`Fatal error. Failed to save transaction to database: `, e);
+        process.exit(1);
+    }
 }

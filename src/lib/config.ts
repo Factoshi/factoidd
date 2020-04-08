@@ -1,9 +1,9 @@
 import inquirer from 'inquirer';
 import { isValidPublicFctAddress } from 'factom';
-import { FactomdConfig, AddressConfig, OptionsConfig, IConfig } from '../lib';
+import { FactomdConfig, AddressConfig, OptionsConfig, IConfig } from '.';
 import yaml from 'js-yaml';
 import fs from 'fs';
-import { logger } from '../lib';
+import { logger } from '.';
 
 /**
  * CREATE CONFIG
@@ -73,11 +73,11 @@ export async function createFactomdConfig(): Promise<FactomdConfig> {
             default: 'http',
             when: (answers: any) => !answers.factomd.protocol,
             validate: (answer: string) => {
-                if (answer === 'http' || answer === 'https') {
-                    return true;
-                } else {
-                    throw new Error('Response must be either "http" or "https"');
-                }
+                return (
+                    answer === 'http' ||
+                    answer === 'https' ||
+                    new Error('Response must be either "http" or "https"')
+                );
             },
         },
     ];
@@ -107,9 +107,7 @@ export async function createAddressConfig(
             filter: (answer: string) => answer.toUpperCase(),
             default: 'USD',
             validate: (answer: string) => {
-                return answer.length === 3
-                    ? true
-                    : new Error('Currency symbol should be 3 characters.');
+                return answer.length === 3 || new Error('Currency symbol should be 3 characters.');
             },
         },
         {
@@ -149,9 +147,7 @@ export async function createOptionsConfig(): Promise<OptionsConfig> {
             message:
                 'Enter you cryptocompare API key (https://www.cryptocompare.com/cryptopian/api-keys):',
             validate: (key: string) => {
-                return /^[A-Fa-f0-9]{64}$/.test(key)
-                    ? true
-                    : new Error('Expected 64 char hex key.');
+                return /^[A-Fa-f0-9]{64}$/.test(key) || new Error('Expected 64 char hex key.');
             },
         },
         {
@@ -165,9 +161,7 @@ export async function createOptionsConfig(): Promise<OptionsConfig> {
             message: `Enter your bitcoin.tax key: `,
             when: (answers: any) => answers.bitcoinTax,
             validate: (key: string) => {
-                return /^[A-Fa-f0-9]{16}$/.test(key)
-                    ? true
-                    : new Error('Expected 16 char hex key.');
+                return /^[A-Fa-f0-9]{16}$/.test(key) || new Error('Expected 16 char hex key.');
             },
         },
         {
@@ -176,9 +170,7 @@ export async function createOptionsConfig(): Promise<OptionsConfig> {
             message: `Enter your bitcoin.tax secret: `,
             when: (answers: any) => answers.bitcoinTax,
             validate: (key: string) => {
-                return /^[A-Fa-f0-9]{32}$/.test(key)
-                    ? true
-                    : new Error('Expected 32 char hex key.');
+                return /^[A-Fa-f0-9]{32}$/.test(key) || new Error('Expected 32 char hex key.');
             },
         },
         {
@@ -219,7 +211,7 @@ const factomdConfigSchema: FactomdConfig = {
 
 const optionsSchema: OptionsConfig = {
     cryptocompare: Joi.string().alphanum().length(64).required(),
-    bitcoinTax: Joi.boolean(),
+    bitcoinTax: Joi.boolean().required(),
     bitcoinTaxSecret: Joi.string().alphanum().length(32),
     bitcoinTaxKey: Joi.string().alphanum().length(16),
     startHeight: Joi.number().positive().default(143400),

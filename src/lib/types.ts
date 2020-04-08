@@ -7,9 +7,8 @@ export interface TransactionRow {
     height: number;
     date: string;
     receivedFCT: number;
-    sentFCT: number;
     price?: number;
-    isCoinbase: boolean;
+    bitcointax?: boolean;
 }
 
 export interface BitcoinTaxParams {

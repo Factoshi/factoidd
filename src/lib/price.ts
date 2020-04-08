@@ -1,7 +1,6 @@
 import { stringify } from 'querystring';
 import axiosRetry, { exponentialDelay } from 'axios-retry';
 import axios from 'axios';
-import { toInteger } from './utils';
 
 import { TransactionTable } from './db';
 import { logger } from './logger';
@@ -11,9 +10,9 @@ axiosRetry(axios, { retries: 2, retryDelay: exponentialDelay });
 
 async function getPrice(currency: string, timestamp: number, secret: string) {
     // API can deliver per minute pricing if timestamp within past week, or hourly pricing
-    // if timestamp was from before that.
+    // if timestamp was from before that. 600000 seconds is a week minus a little bit to be safe.
     // prettier-ignore
-    const timePrecision = timestamp > toInteger(Date.now() / 1000) - 600000 
+    const timePrecision = timestamp > Date.now() / 1000 - 600000 
             ? 'histominute' 
             : 'histohour';
 
@@ -46,17 +45,20 @@ async function getPrice(currency: string, timestamp: number, secret: string) {
  */
 export async function batchUpdatePrice(
     txTable: TransactionTable,
-    bottleneck: Bottleneck,
+    limiter: Bottleneck,
     secret: string
 ) {
-    const nullPriceTransactions = await txTable.getTransactionsWithNullPrice();
-    logger.info(`Fetching price data for ${nullPriceTransactions.length} transactions.`);
+    const transactions = await txTable.getTransactionsWithNullPrice();
+    logger.info(`Fetching price data for ${transactions.length} transaction(s)`);
 
-    for (let { rowid, currency, timestamp, txhash, height } of nullPriceTransactions) {
-        const price = await bottleneck.schedule(() => getPrice(currency, timestamp, secret));
-
-        const msg = `Updating price for transaction ${txhash} at height ${height} to ${price} ${currency}`;
-        logger.info(msg);
+    for (let [i, { rowid, currency, timestamp, txhash }] of transactions.entries()) {
+        if (i % 10 === 0) {
+            logger.info(`Fetching price data for transaction ${i} of ${transactions.length}`);
+        }
+        const price = await limiter.schedule(() => getPrice(currency, timestamp, secret));
         await txTable.updatePrice(rowid, price);
+        logger.debug(`Saved price ${price} ${currency} for transaction ${txhash}`);
     }
+
+    logger.info(`Finished fetching price data for ${transactions.length} transaction(s)`);
 }

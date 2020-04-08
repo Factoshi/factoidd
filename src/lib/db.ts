@@ -15,13 +15,11 @@ export class TransactionTable {
                 date        TEXT,
                 timestamp   INTEGER,
                 receivedFCT REAL,
-                sentFCT     REAL,
                 currency    TEXT,
                 height      INTEGER,
                 price       REAL,
                 csv         BOOLEAN DEFAULT false,
                 bitcointax  BOOLEAN DEFAULT false,
-                isCoinbase  BOOLEAN,
                 PRIMARY KEY (txhash, address, currency)
         );`);
     }
@@ -30,24 +28,22 @@ export class TransactionTable {
      * Saves a transaction without price data.
      * @param tx Transaction row.
      */
-    public insertRawTransactionRow(tx: TransactionRow) {
+    public insertUncommittedTransaction(tx: TransactionRow) {
         const values = {
             ':txhash': tx.txhash,
             ':address': tx.address,
             ':date': tx.date,
             ':timestamp': tx.timestamp,
             ':receivedFCT': tx.receivedFCT,
-            ':sentFCT': tx.sentFCT,
             ':currency': tx.currency,
             ':height': tx.height,
-            ':isCoinbase': tx.isCoinbase,
         };
 
         return this.db.run(
             `INSERT INTO transactions 
-                (txhash, address, date, timestamp, receivedFCT, sentFCT, currency, height, isCoinbase) 
+                (txhash, address, date, timestamp, receivedFCT, currency, height) 
             VALUES 
-                (:txhash, :address, :date, :timestamp, :receivedFCT, :sentFCT, :currency, :height, :isCoinbase);`,
+                (:txhash, :address, :date, :timestamp, :receivedFCT, :currency, :height);`,
             values
         );
     }
@@ -60,8 +56,7 @@ export class TransactionTable {
                 rowid, 
                 currency, 
                 timestamp, 
-                txhash,
-                height
+                txhash
             FROM 
                 transactions
             WHERE
@@ -76,16 +71,19 @@ export class TransactionTable {
     public getUncommittedTransactions(): Promise<(TransactionRow & { rowid: number })[]> {
         return this.db.all(`
             SELECT 
-                *
+                *,
+                rowid
             FROM 
                 transactions
             WHERE
                 bitcointax = false
+            AND
+                price > 0
         `);
     }
 
     public updateBitcoinTax(rowid: number, bool: boolean) {
-        return this.db.run('UPDATE transactions SET committed = ? WHERE rowid = ?;', bool, rowid);
+        return this.db.run('UPDATE transactions SET bitcointax = ? WHERE rowid = ?;', bool, rowid);
     }
 
     public async getMaxHeight(): Promise<number> {

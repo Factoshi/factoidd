@@ -1,6 +1,5 @@
 import axiosRetry, { exponentialDelay } from 'axios-retry';
 import axios from 'axios';
-import { OptionsConfig } from './types';
 
 import { TransactionTable } from './db';
 import { logger } from './logger';
@@ -24,7 +23,12 @@ enum BitcoinTaxSymbol {
     FCT = 'FCT',
 }
 
-interface BitcoinTaxData {
+interface Keys {
+    bitcoinTaxSecret: string;
+    bitcoinTaxKey: string;
+}
+
+interface AddTransactionData {
     date: string;
     action: BitcoinTaxAction;
     symbol: BitcoinTaxSymbol;
@@ -36,15 +40,13 @@ interface BitcoinTaxData {
     recipient: string;
 }
 
-interface Keys {
-    secret: string;
-    key: string;
-}
-
-function formatTranactionRow(txRow: TransactionRow): BitcoinTaxData {
+/**
+ * Format transaction for bitcoin.tax API
+ */
+function formatTransaction(txRow: TransactionRow, action: BitcoinTaxAction): AddTransactionData {
     return {
         date: txRow.date,
-        action: BitcoinTaxAction.INCOME,
+        action,
         symbol: BitcoinTaxSymbol.FCT,
         currency: txRow.currency,
         volume: txRow.receivedFCT,
@@ -55,35 +57,54 @@ function formatTranactionRow(txRow: TransactionRow): BitcoinTaxData {
     };
 }
 
-async function saveToBitcoinTax(data: BitcoinTaxData, keys: Keys) {
-    const { key, secret } = keys;
-    var headers = { 'X-APIKEY': key, 'X-APISECRET': secret };
-    var uri = 'https://api.bitcoin.tax/v1/transactions';
-    await axios.post(uri, data, { headers });
+/**
+ * Commit tranaction to bitcoin.tax API
+ */
+async function commitTransaction(data: AddTransactionData, keys: Keys) {
+    try {
+        const { bitcoinTaxKey, bitcoinTaxSecret } = keys;
+        var headers = { 'X-APIKEY': bitcoinTaxKey, 'X-APISECRET': bitcoinTaxSecret };
+        var uri = 'https://api.bitcoin.tax/v1/transactions';
+        await axios.post(uri, data, { headers });
+    } catch (e) {
+        if (e.response.status === 401) {
+            logger.error('Invalid bitcoin.tax credentials. Please check and try again.');
+            process.exit(1);
+        }
+        throw e;
+    }
 }
 
 /**
- * Function fills in price data for all transactions in DB with missing data.
+ * Fill price data for all outstanding income transactions held in DB.
+ * @param txTable The database table holding the income transactions.
+ * @param bottleneck Rate limiter instance.
+ * @param keys Bitcoin.tax keys.
  */
-export async function batchUpdateBitcoinTax(
-    txTable: TransactionTable,
-    bottleneck: Bottleneck,
-    keys: Keys
-) {
-    const uncommittedTransactions = await txTable.getUncommittedTransactions();
+export async function batchUpdateIncome(db: TransactionTable, bottleneck: Bottleneck, keys: Keys) {
+    const transactions = await db.getUncommittedTransactions();
     // Filter to get only income transactions with known price. This can be updated later if adding other action types.
-    const transactions = uncommittedTransactions.filter((tx) => tx.receivedFCT > 0 && tx.price);
     logger.info(`Committing ${transactions.length} transaction(s) to bitcoin.tax`);
 
-    for (let { rowid, ...rest } of transactions) {
-        const data = formatTranactionRow(rest);
-        await bottleneck.schedule(() => saveToBitcoinTax(data, keys));
-        await txTable.updateBitcoinTax(rowid, true).catch((e) => {
+    for (let [i, { rowid, ...tx }] of transactions.entries()) {
+        if (i % 10 === 0) {
+            logger.info(`Commiting transaction ${i} of ${transactions.length} to bitoin.tax`);
+        }
+        logger.debug(`Committing transaction ${tx.txhash} to bitoin.tax`);
+
+        const data = formatTransaction(tx, BitcoinTaxAction.INCOME);
+        await bottleneck.schedule(() => commitTransaction(data, keys));
+        await db.updateBitcoinTax(rowid, true).catch((e) => {
             // Failure to write to database after committing to bitcoin tax is a fatal
-            // error that cannot be recovered.
-            logger.error('Fatal error. Database has inconsistent state.\n', e);
+            // error that cannot be recovered and requires user intervention.
+            logger.error('Fatal error');
+            logger.error(
+                `IMPORTANT! Remove transaction ${tx.txhash} from bitcoin.tax before restarting.`
+            );
+            logger.error(e);
             process.exit(1);
         });
-        logger.info(`Committed transaction ${data.memo} to bitoin.tax`);
     }
+
+    logger.info(`Comitted ${transactions.length} transaction(s) to bitcoin.tax`);
 }
