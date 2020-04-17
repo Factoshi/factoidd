@@ -1,50 +1,15 @@
 # Factoidd
 
-Fatoidd tracks factoid receipts in a fiat currency of your choice. Factoidd will output a CSV and, optionally, will also push transactions to the cryptocurrency accounting website https://bitcoin.tax. Factoidd listens for new receipts and will backfil historical receipts to a block height of your choice.
-
-Factoidd can be pulled directly from Docker Hub and run as a container. It also works well as a standalone daemon, or can be run as needed to fill missing transactions.
+Fatoidd tracks factoid receipts in a fiat currency of your choice. Factoidd will output a CSV and, optionally, will also push transactions to the cryptocurrency accounting website bitcoin.tax. Factoidd listens for new receipts and will backfil historical receipts to a block height of your choice.
 
 ## Requirements
 
--   A Cryptocompare API key. Get your key here: https://min-api.cryptocompare.com/. There is a free tier.
--   Either Docker or a recent version of Node.js.
--   Optional: a bitcoin.tax account.
+-   **Node.js**.
+    Installation instructions: https://nodejs.org/en/download/package-manager/
+-   **A Cryptocompare API key**. Get your key here: https://min-api.cryptocompare.com/. There is a free tier.
+-   **Optional: a bitcoin.tax account**. Referall signup link: https://bitcoin.tax/r/3DJmuGLt
 
 ## Installation
-
-### Docker (recommended)
-
-Set up the directory structure on your host machine.
-
-```
-mkdir factoidd && cd factoidd
-mkdir config && mkdir database
-```
-
-Next, create a config.yaml file and place it in the config directory. An example configuration file can be found [here](config/config.EXAMPLE.yaml).
-
-When you're done, your directory structure should look like this:
-
-```
-├── factoidd
-│   ├── config
-│   │   └─ config.yaml
-│   └── database
-└── ...
-```
-
-Finally, pull the image and create a container. Check you have the latest version [here](https://cloud.docker.com/u/factoshi/repository/docker/factoshi/factoidd/tags).
-
-```
-docker run -d --name factoidd \
-    -v /path/to/your/factoidd/config:/app/config \
-    -v /path/to/your/factoidd/database:/app/database \
-    factoshi/factoidd:v3.0.1
-```
-
-Check your docker logs to make sure factoidd is configured correctly.
-
-### Node.js
 
 Clone this repo and cd into the project.
 
@@ -53,8 +18,6 @@ https://github.com/Factoshi/factoidd.git
 cd factoidd
 ```
 
-Create a config file and place it in the config directory. An example config is already in place, or you can view it [here](config/config.yaml.example).
-
 Next, install the project dependencies and build from the source code.
 
 ```
@@ -62,18 +25,26 @@ npm install --production
 npm run build
 ```
 
-And that's it. Run the daemon with:
+Optionally, you can symlink it into your PATH and setup a systemd service file. Tested on Ubuntu.
 
 ```
-node factoidd
+# symlink the entry script into your path
+sudo ln -s $PWD/factoidd /usr/local/bin
+
+# symlink the service file into systemd
+sudo ln -s $PWD/factoidd.service /etc/systemd/system
 ```
 
-If you want to run factoidd as a background process, you may consider using [PM2](http://pm2.keymetrics.io/) or systemd.
+## Running
 
-## Development
-
-No special configuration needed for development. Tests can be run with:
+The first time you run the script, you will need to initialise the config. Note: if you did not copy the script into you path, you will need to prefix the below commands with `./`)
 
 ```
-npx jest
+factoidd init
+```
+
+After that, you can simply start it with
+
+```
+factoidd start
 ```
