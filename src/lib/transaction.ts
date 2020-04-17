@@ -1,4 +1,4 @@
-import { Transaction, TransactionAddress } from 'factom';
+import { Transaction } from 'factom';
 import axiosRetry, { exponentialDelay } from 'axios-retry';
 import axios from 'axios';
 
@@ -9,7 +9,7 @@ import { TransactionTable } from './db';
 import { logger } from './logger';
 import { Factom } from './factom';
 
-axiosRetry(axios, { retries: 2, retryDelay: exponentialDelay });
+axiosRetry(axios, { retryDelay: exponentialDelay });
 
 function formatIncomeTransaction(
     tx: Transaction,
