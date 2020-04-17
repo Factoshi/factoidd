@@ -43,20 +43,17 @@ async function getPrice(currency: string, timestamp: number, secret: string) {
 /**
  * Function fills in price data for all transactions in DB with missing data.
  */
-export async function batchUpdatePrice(
-    txTable: TransactionTable,
-    limiter: Bottleneck,
-    secret: string
-) {
-    const transactions = await txTable.getTransactionsWithNullPrice();
+export async function batchUpdatePrice(db: TransactionTable, secret: string, minTime = 500) {
+    const transactions = await db.getTransactionsWithNullPrice();
+    const bottleneck = new Bottleneck({ minTime });
     logger.info(`Fetching price data for ${transactions.length} transaction(s)`);
 
     for (let [i, { rowid, currency, timestamp, txhash }] of transactions.entries()) {
         if (i % 10 === 0) {
             logger.info(`Fetching price data for transaction ${i} of ${transactions.length}`);
         }
-        const price = await limiter.schedule(() => getPrice(currency, timestamp, secret));
-        await txTable.updatePrice(rowid, price);
+        const price = await bottleneck.schedule(() => getPrice(currency, timestamp, secret));
+        await db.updatePrice(rowid, price);
         logger.debug(`Saved price ${price} ${currency} for transaction ${txhash}`);
     }
 
