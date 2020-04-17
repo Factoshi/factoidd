@@ -1,18 +1,7 @@
 import commander from 'commander';
-import dotenv from 'dotenv';
-
 import { init } from './init';
 import { app } from './start';
 var pjson = require('../../package.json');
-
-// Load environment variables.
-const envFile = process.env.ENV_FILE || 'develop';
-const result = dotenv.config({
-    path: `./env/${envFile}.env`,
-});
-if (result.error) {
-    console.log('No env file.');
-}
 
 const program = new commander.Command();
 
