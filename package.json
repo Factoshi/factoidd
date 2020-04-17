@@ -4,8 +4,9 @@
     "description": "Fatoidd tracks factoid receipts in a fiat currency of your choice.",
     "main": "build/index.js",
     "scripts": {
-        "test": "jest",
         "build": "tsc",
+        "test": "ENV_FILE=test mocha -r ts-node/register -r env  **/*.spec.ts",
+        "test:watch": "nodemon --config \"./util/nodemon.test.json\"",
         "docker-build": "docker build -t factoshi/factoidd:develop .",
         "docker-push": "docker push factoshi/factoidd:develop",
         "docker-deploy": "docker build -t factoshi/factoidd:develop . && docker push factoshi/factoidd:develop",
