@@ -37,22 +37,14 @@ Optionally, you can symlink it into your PATH and setup a systemd service file. 
 # symlink the entry script into your PATH
 sudo ln -s $PWD/factoidd /usr/local/bin
 
-# create a systemd service file. Edit the below example as needed
-echo "[Unit]
-Description=factoidd - track factoid transactions
-Documentation=https://github.com/Factoshi/factoidd
-After=network.target
+# copy the example service file
+cp factoidd.service.example factoidd.service
 
-[Service]
-User=$USER
-Environment=NODE_ENV=production
-Environment=ENV_FILE=production
-Type=simple
-ExecStart=/usr/local/bin/factoidd start
-Restart=on-failure
+# edit the factoidd.service file to add your user and make any oher changes
+nano factoidd.service
 
-[Install]
-WantedBy=multi-user.target" > /etc/systemd/system/factoidd.service
+# symlink the service file into the systemd directory
+sudo ln -s $PWD/factoidd.service /etc/systemd/system/
 ```
 
 ## Running

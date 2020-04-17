@@ -6,3 +6,4 @@ docker-compose.yaml
 *.env
 build
 appdir
+factoidd.service
