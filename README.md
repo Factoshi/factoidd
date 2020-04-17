@@ -13,22 +13,26 @@ Fatoidd tracks factoid receipts in a fiat currency of your choice. Factoidd will
 
 Clone this repo and cd into the project.
 
-```
-https://github.com/Factoshi/factoidd.git
-cd factoidd
+```shell
+git clone https://github.com/Factoshi/factoidd.git && cd factoidd
 ```
 
-Next, install the project dependencies and build from the source code.
+Install the project dependencies and build from the source code.
 
-```
+```shell
 npm install --production
+```
+
+Compile the source code.
+
+```shell
 npm run build
 ```
 
 Optionally, you can symlink it into your PATH and setup a systemd service file. Tested on Ubuntu.
 
-```
-# symlink the entry script into your path
+```shell
+# symlink the entry script into your PATH
 sudo ln -s $PWD/factoidd /usr/local/bin
 
 # symlink the service file into systemd
@@ -48,3 +52,5 @@ After that, you can simply start it with
 ```
 factoidd start
 ```
+
+Optional flags can be seen with `--help`.
