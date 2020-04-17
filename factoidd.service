@@ -6,7 +6,7 @@ After=network.target
 [Service]
 Environment=NODE_ENV=production
 Type=simple
-ExecStart=/usr/bin/node /usr/local/bin/factoidd start
+ExecStart=/usr/local/bin/factoidd start
 Restart=on-failure
 
 [Install]
