@@ -1,6 +1,22 @@
 import sqlite from 'sqlite';
 import { logger } from './logger';
 import { TransactionRow } from './types';
+import sqlite3 from 'sqlite3';
+import { open } from 'sqlite';
+
+/**
+ * Create an open sqlite3 database connection.
+ * @param path Path to Sqlite database.
+ */
+export async function initialiseDatabase(dbPath: string) {
+    try {
+        logger.info(`Opening database connection to ${dbPath}`);
+        return open({ filename: dbPath, driver: sqlite3.Database });
+    } catch (e) {
+        logger.error('Could not connect to database: ', e);
+        process.exit(1);
+    }
+}
 
 export class TransactionTable {
     constructor(private db: sqlite.Database) {}

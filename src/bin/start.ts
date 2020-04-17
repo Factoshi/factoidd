@@ -1,7 +1,4 @@
 import winston from 'winston';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
-import Bottleneck from 'bottleneck';
 
 import {
     Config,
@@ -15,8 +12,8 @@ import {
     batchUpdateIncome,
     getDefaultConfigPath,
     getDefaultDatabasePath,
+    initialiseDatabase,
 } from '../lib';
-import { getConfigPath, getDatabasePath } from './init';
 
 process.on('SIGTERM', () => process.exit(0));
 process.on('SIGINT', () => process.exit(0));
@@ -25,40 +22,19 @@ process.on('unhandledRejection', (_, promise) => {
     process.exit(1);
 });
 
-/**
- * Create an open sqlite3 database connection.
- * @param path Path to Sqlite database.
- */
-async function initialiseDatabase() {
+export async function processSavedTransactions(db: TransactionTable, config: Config) {
     try {
-        const filename = getDatabasePath();
-        logger.info(`Opening database connection to ${filename}`);
-        return open({ filename, driver: sqlite3.Database });
-    } catch (e) {
-        logger.error('Could not connect to database: ', e);
-        process.exit(1);
-    }
-}
-
-export function createProcessSavedTransactionsFunc(
-    transactionTable: TransactionTable,
-    config: Config
-) {
-    return async () => {
-        try {
-            const bottleneck = new Bottleneck({ minTime: 500 });
-            const { bitcoinTax, cryptocompare, startHeight, ...keys } = config.options;
-            await batchUpdatePrice(transactionTable, bottleneck, cryptocompare);
-            if (bitcoinTax) {
-                await batchUpdateIncome(transactionTable, bottleneck, keys);
-            } else {
-                logger.debug('Skipping bitcoin.tax');
-            }
-        } catch (e) {
-            logger.error('Error while processing new transactions\n', e);
-            logger.warn('Failed to finish processing transaction(s). Will try again later.');
+        const { bitcoinTax, cryptocompare, startHeight, ...keys } = config.options;
+        await batchUpdatePrice(db, cryptocompare);
+        if (bitcoinTax) {
+            await batchUpdateIncome(db, keys);
+        } else {
+            logger.debug('Skipping bitcoin.tax');
         }
-    };
+    } catch (e) {
+        logger.error('Error while processing new transactions\n', e);
+        logger.warn('Failed to finish processing transaction(s). Will try again later.');
+    }
 }
 
 // Main function.
@@ -100,10 +76,9 @@ export async function app(level: string) {
 
     // Process all new found transactions.
     logger.info('Processing new transactions...');
-    const processSavedTransactions = createProcessSavedTransactionsFunc(transactionTable, config);
-    await processSavedTransactions();
-    setInterval(() => processSavedTransactions(), 600000); // Repeat processing once every 10 minutes.
+    await processSavedTransactions(transactionTable, config);
+    // Repeat processing once every 10 minutes.
+    setInterval(() => processSavedTransactions(transactionTable, config), 600000);
 }
 
-// TODO: sort out testing
 // TODO: add CSV
