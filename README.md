@@ -61,8 +61,12 @@ factoidd init
 
 You can backfill all historical income transctions and listen for new income transactions using the `start` subcommand. This command will run indefinitely. You can either daemonise it (e.g. with the systemd service file symlinked above) or run it at regular intervals to backfill transactions:
 
-```
+```bash
+# Without systemd
 factoidd start
+
+# With systemd
+systemctl start factoidd
 ```
 
 ### Spend
