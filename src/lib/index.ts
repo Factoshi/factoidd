@@ -6,3 +6,4 @@ export { batchUpdatePrice } from './price';
 export { batchUpdateIncome } from './bitcointax';
 export * from './types';
 export * from './config';
+export * from './csv';

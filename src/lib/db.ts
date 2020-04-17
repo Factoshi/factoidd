@@ -98,6 +98,24 @@ export class TransactionTable {
         `);
     }
 
+    public getTransactionsNotWrittenToCSV(): Promise<(TransactionRow & { rowid: number })[]> {
+        return this.db.all(`
+            SELECT 
+                *,
+                rowid
+            FROM 
+                transactions
+            WHERE
+                csv = false
+            AND
+                price > 0
+        `);
+    }
+
+    public updateCSV(rowid: number, bool: boolean) {
+        return this.db.run('UPDATE transactions SET csv = ? WHERE rowid = ?;', bool, rowid);
+    }
+
     public updateBitcoinTax(rowid: number, bool: boolean) {
         return this.db.run('UPDATE transactions SET bitcointax = ? WHERE rowid = ?;', bool, rowid);
     }

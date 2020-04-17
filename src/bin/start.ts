@@ -13,6 +13,8 @@ import {
     getConfigPath,
     getDatabasePath,
     initialiseDatabase,
+    createIncomeCSVFile,
+    batchUpdateCSV,
 } from '../lib';
 
 process.on('SIGTERM', () => process.exit(0));
@@ -22,15 +24,16 @@ process.on('unhandledRejection', (_, promise) => {
     process.exit(1);
 });
 
-export async function processSavedTransactions(db: TransactionTable, config: Config) {
+export async function processSavedTransactions(db: TransactionTable, conf: Config, appdir: string) {
     try {
-        const { bitcoinTax, cryptocompare, startHeight, ...keys } = config.options;
+        const { bitcoinTax, cryptocompare, startHeight, ...keys } = conf.options;
         await batchUpdatePrice(db, cryptocompare);
         if (bitcoinTax) {
             await batchUpdateIncome(db, keys);
         } else {
             logger.debug('Skipping bitcoin.tax');
         }
+        await batchUpdateCSV(db, appdir);
     } catch (e) {
         logger.error('Error while processing new transactions\n', e);
         logger.warn('Failed to finish processing transaction(s). Will try again later.');
@@ -61,6 +64,9 @@ export async function app(level: string, appdir: string) {
     const transactionTable = new TransactionTable(db);
     await transactionTable.createTransactionTable();
 
+    // Create the CSV files to record transactions
+    config.addresses.forEach(({ address }) => createIncomeCSVFile(appdir, address));
+
     // Create the transaction listeners to save new transactions.
     factom.event.on('error', (e) => logger.error('Factom event error:', e));
     config.addresses.forEach((addressConf: AddressConfig) => {
@@ -77,7 +83,7 @@ export async function app(level: string, appdir: string) {
     // Process all new found transactions.
     logger.info('Processing new transactions...');
     while (true) {
-        await processSavedTransactions(transactionTable, config);
+        await processSavedTransactions(transactionTable, config, appdir);
         await new Promise((resolve) => setTimeout(resolve, 600000)); // Sleep for 10 minutes
     }
 }
