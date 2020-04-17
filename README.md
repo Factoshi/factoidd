@@ -41,16 +41,28 @@ sudo ln -s $PWD/factoidd.service /etc/systemd/system
 
 ## Running
 
+### Init
+
 The first time you run the script, you will need to initialise the config. Note: if you did not copy the script into you path, you will need to prefix the below commands with `./`)
 
 ```
 factoidd init
 ```
 
-After that, you can simply start it with
+### Start
+
+You can backfill all historical income transctions and listen for new income transactions using the `start` subcommand. This command will run indefinitely. You can either daemonise it (e.g. with the systemd service file symlinked above) or run it at regular intervals to backfill transactions:
 
 ```
 factoidd start
 ```
 
-Optional flags can be seen with `--help`.
+### Spend
+
+You can add an individual spend transactions using the `spend` subcommand:
+
+```
+factoid spend <transaction ID>
+```
+
+Run `factoidd --help` for further help.
