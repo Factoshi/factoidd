@@ -42,7 +42,7 @@ export async function app(level: string) {
     // Set logger.
     const consoleTransport = new winston.transports.Console({
         level: level,
-        stderrLevels: ['error', 'warn'],
+        stderrLevels: ['error'],
     });
     logger.add(consoleTransport);
     logger.info(`Log level: ${level}`);
