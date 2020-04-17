@@ -6,7 +6,7 @@ import { logger } from './logger';
 import Bottleneck from 'bottleneck';
 import { TransactionRow } from './types';
 
-axiosRetry(axios, { retries: 2, retryDelay: exponentialDelay });
+axiosRetry(axios, { retryDelay: exponentialDelay });
 
 enum BitcoinTaxAction {
     SELL = 'SELL',
@@ -19,10 +19,6 @@ enum BitcoinTaxAction {
     DONATION = 'DONATION',
 }
 
-enum BitcoinTaxSymbol {
-    FCT = 'FCT',
-}
-
 interface Keys {
     bitcoinTaxSecret: string;
     bitcoinTaxKey: string;
@@ -31,7 +27,7 @@ interface Keys {
 interface AddTransactionData {
     date: string;
     action: BitcoinTaxAction;
-    symbol: BitcoinTaxSymbol;
+    symbol: string;
     currency: string;
     volume: number;
     price: number;
@@ -47,7 +43,7 @@ function formatTransaction(txRow: TransactionRow, action: BitcoinTaxAction): Add
     return {
         date: txRow.date,
         action,
-        symbol: BitcoinTaxSymbol.FCT,
+        symbol: 'FCT',
         currency: txRow.currency,
         volume: txRow.receivedFCT,
         price: txRow.price!,
@@ -60,12 +56,12 @@ function formatTransaction(txRow: TransactionRow, action: BitcoinTaxAction): Add
 /**
  * Commit tranaction to bitcoin.tax API
  */
-async function commitTransaction(data: AddTransactionData, keys: Keys) {
+function commitTransaction(data: AddTransactionData, keys: Keys) {
     try {
         const { bitcoinTaxKey, bitcoinTaxSecret } = keys;
         var headers = { 'X-APIKEY': bitcoinTaxKey, 'X-APISECRET': bitcoinTaxSecret };
         var uri = 'https://api.bitcoin.tax/v1/transactions';
-        await axios.post(uri, data, { headers });
+        return axios.post(uri, data, { headers });
     } catch (e) {
         if (e.response.status === 401) {
             logger.error('Invalid bitcoin.tax credentials. Please check and try again.');
@@ -81,9 +77,9 @@ async function commitTransaction(data: AddTransactionData, keys: Keys) {
  * @param bottleneck Rate limiter instance.
  * @param keys Bitcoin.tax keys.
  */
-export async function batchUpdateIncome(db: TransactionTable, bottleneck: Bottleneck, keys: Keys) {
+export async function batchUpdateIncome(db: TransactionTable, keys: Keys, minTime = 500) {
     const transactions = await db.getUncommittedTransactions();
-    // Filter to get only income transactions with known price. This can be updated later if adding other action types.
+    const bottleneck = new Bottleneck({ minTime });
     logger.info(`Committing ${transactions.length} transaction(s) to bitcoin.tax`);
 
     for (let [i, { rowid, ...tx }] of transactions.entries()) {
@@ -96,11 +92,12 @@ export async function batchUpdateIncome(db: TransactionTable, bottleneck: Bottle
         await bottleneck.schedule(() => commitTransaction(data, keys));
         await db.updateBitcoinTax(rowid, true).catch((e) => {
             // Failure to write to database after committing to bitcoin tax is a fatal
-            // error that cannot be recovered and requires user intervention.
+            // error that cannot be recovered and requires user intervention. This is because there is
+            // now an inconsistency between bitcoin.tax and the local database that will not be recovered
+            // on restart. At the time of writing, there is no way to delete transactions from bitcoin.tax
+            // via the API, so the inconsistency cannot be remedied in code.
             logger.error('Fatal error');
-            logger.error(
-                `IMPORTANT! Remove transaction ${tx.txhash} from bitcoin.tax before restarting.`
-            );
+            logger.error(`Remove transaction ${tx.txhash} from bitcoin.tax before restarting`);
             logger.error(e);
             process.exit(1);
         });
