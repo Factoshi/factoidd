@@ -81,7 +81,6 @@ export async function app(level: string, appdir: string) {
     await emitNewTransactions(transactionTable, config.options.startHeight, factom);
 
     // Process all new found transactions.
-    logger.info('Processing new transactions...');
     while (true) {
         await processSavedTransactions(transactionTable, config, appdir);
         await new Promise((resolve) => setTimeout(resolve, 600000)); // Sleep for 10 minutes
