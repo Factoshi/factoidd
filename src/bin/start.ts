@@ -76,9 +76,8 @@ export async function app(level: string) {
 
     // Process all new found transactions.
     logger.info('Processing new transactions...');
-    await processSavedTransactions(transactionTable, config);
-    // Repeat processing once every 10 minutes.
-    setInterval(() => processSavedTransactions(transactionTable, config), 600000);
+    while (true) {
+        await processSavedTransactions(transactionTable, config);
+        await new Promise((resolve) => setTimeout(resolve, 600000)); // Sleep for 10 minutes
+    }
 }
-
-// TODO: add CSV
