@@ -9,15 +9,7 @@
         "test:watch": "nodemon --config \"./util/nodemon.test.json\"",
         "docker-build": "docker build -t factoshi/factoidd:develop .",
         "docker-push": "docker push factoshi/factoidd:develop",
-        "docker-deploy": "docker build -t factoshi/factoidd:develop . && docker push factoshi/factoidd:develop",
-        "start:develop": "pm2 start ecosystem.config.js",
-        "restart:develop": "pm2 restart ecosystem.config.js",
-        "start": "pm2 start ecosystem.config.js --env production",
-        "restart": "pm2 restart ecosystem.config.js --env production",
-        "stop": "pm2 stop ecosystem.config.js",
-        "delete": "pm2 delete ecosystem.config.js",
-        "status": "pm2 status",
-        "logs": "pm2 logs --lines 50"
+        "docker-deploy": "docker build -t factoshi/factoidd:develop . && docker push factoshi/factoidd:develop"
     },
     "repository": {
         "type": "git",
@@ -65,6 +57,7 @@
         "chai": "^4.2.0",
         "husky": "^4.2.3",
         "mocha": "^7.1.1",
+        "nodemon": "^2.0.2",
         "sinon": "^9.0.1",
         "ts-jest": "^24.3.0",
         "ts-node": "^8.8.2",
