@@ -2,7 +2,7 @@ import { TransactionTable } from './db';
 import { logger } from './logger';
 import { existsSync, mkdirSync, appendFileSync } from 'fs';
 import { resolve } from 'path';
-import { to2DecimalPlaces } from './utils';
+import { to2DecimalPlaces, to4DecimalPlaces } from './utils';
 
 export enum CSVSubDir {
     INCOME = 'income',
@@ -44,6 +44,7 @@ export function updateCSV(
 ) {
     const csvFile = resolve(appDirectory, 'csv', subdir, `${address}.csv`);
     const total = to2DecimalPlaces(price * volume);
+    volume = to4DecimalPlaces(volume);
     appendFileSync(
         csvFile,
         [date, height, txhash, volume, price, total, currency].join(',') + '\n'
