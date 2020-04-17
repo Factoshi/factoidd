@@ -13,6 +13,8 @@ import {
     TransactionTable,
     batchUpdatePrice,
     batchUpdateIncome,
+    getDefaultConfigPath,
+    getDefaultDatabasePath,
 } from '../lib';
 import { getConfigPath, getDatabasePath } from './init';
 
@@ -70,7 +72,7 @@ export async function app(level: string) {
     logger.info(`Log level: ${level}`);
 
     // Instantiate Config singleton.
-    const configPath = getConfigPath();
+    const configPath = getDefaultConfigPath();
     const config = new Config(configPath);
 
     // Instantiate factom and check connection to factomd.
@@ -78,7 +80,8 @@ export async function app(level: string) {
     await factom.testConnection();
 
     // Open database connection and instantiate table classes.
-    const db = await initialiseDatabase();
+    const dbPath = getDefaultDatabasePath();
+    const db = await initialiseDatabase(dbPath);
     const transactionTable = new TransactionTable(db);
     await transactionTable.createTransactionTable();
 

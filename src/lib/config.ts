@@ -1,13 +1,57 @@
 import inquirer from 'inquirer';
 import { isValidPublicFctAddress } from 'factom';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+
 import { FactomdConfig, AddressConfig, OptionsConfig, IConfig } from '.';
 import yaml from 'js-yaml';
-import fs from 'fs';
 import { logger } from '.';
+
+import { APP_DIR, CONFIG_FILENAME, DATABASE_FILENAME } from './constants';
 
 /**
  * CREATE CONFIG
  */
+
+/**
+ * Gets the absolute path to the app directory.
+ */
+function getAppdirPath() {
+    const homedir = os.homedir();
+    return path.join(homedir, APP_DIR);
+}
+
+/**
+ * Gets the absolute path to the config file.
+ */
+export function getDefaultConfigPath() {
+    const appdir = getAppdirPath();
+    return path.join(appdir, CONFIG_FILENAME);
+}
+
+/**
+ * Gets the absolute path to the database file.
+ */
+export function getDefaultDatabasePath() {
+    const appdir = getAppdirPath();
+    return path.join(appdir, DATABASE_FILENAME);
+}
+
+/**
+ * Creates an app directory in the home directory if it does not already exist.
+ * @returns Absolute path to app directory
+ */
+export function createAppdirIfNotExist() {
+    const appdir = getAppdirPath();
+    const appdirExists = fs.existsSync(appdir);
+    if (!appdirExists) {
+        console.log(`Creating app directory at: ${appdir}`);
+        fs.mkdirSync(appdir);
+    }
+    return appdir;
+}
+
 enum FactomdLocation {
     OpenNode = 'OpenNode',
     DefaultLocal = 'Default localhost',
