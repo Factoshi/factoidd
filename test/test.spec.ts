@@ -114,8 +114,13 @@ describe('Test Update Price', () => {
 });
 
 describe('Test Transactions', async () => {
+    const HOST = process.env.FACTOM_HOST || 'localhost';
+    const PORT = process.env.FACTOM_PORT ? parseInt(process.env.FACTOM_PORT) : 8088;
+    const PATH = process.env.FACTOM_PATH || 'v2';
+    const PROTOCOL = process.env.FACTOM_PROTOCOL || 'http';
+
     function newFactom() {
-        return new Factom({ host: 'localhost', port: 8088, path: '/v2', protocol: 'http' });
+        return new Factom({ host: HOST, port: PORT, path: PATH, protocol: PROTOCOL });
     }
 
     it('saves a coinbase transaction', async () => {
