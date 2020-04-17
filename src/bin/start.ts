@@ -10,8 +10,8 @@ import {
     TransactionTable,
     batchUpdatePrice,
     batchUpdateIncome,
-    getDefaultConfigPath,
-    getDefaultDatabasePath,
+    getConfigPath,
+    getDatabasePath,
     initialiseDatabase,
 } from '../lib';
 
@@ -38,7 +38,7 @@ export async function processSavedTransactions(db: TransactionTable, config: Con
 }
 
 // Main function.
-export async function app(level: string) {
+export async function app(level: string, appdir: string) {
     // Set logger.
     const consoleTransport = new winston.transports.Console({
         level: level,
@@ -48,7 +48,7 @@ export async function app(level: string) {
     logger.info(`Log level: ${level}`);
 
     // Instantiate Config singleton.
-    const configPath = getDefaultConfigPath();
+    const configPath = getConfigPath(appdir);
     const config = new Config(configPath);
 
     // Instantiate factom and check connection to factomd.
@@ -56,7 +56,7 @@ export async function app(level: string) {
     await factom.testConnection();
 
     // Open database connection and instantiate table classes.
-    const dbPath = getDefaultDatabasePath();
+    const dbPath = getDatabasePath(appdir);
     const db = await initialiseDatabase(dbPath);
     const transactionTable = new TransactionTable(db);
     await transactionTable.createTransactionTable();

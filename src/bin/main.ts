@@ -1,6 +1,7 @@
 import commander from 'commander';
 import { init } from './init';
 import { app } from './start';
+import { getDefaultAppdirPath } from '../lib';
 var pjson = require('../../package.json');
 
 const program = new commander.Command();
@@ -14,7 +15,8 @@ program
     .command('start')
     .description('start daemon to listen and record income transactions.')
     .option('-l, --loglvl <level>', 'log output level', process.env.LOG_LEVEL || 'info')
-    .action(({ loglvl }) => app(loglvl));
+    .option('-d --appdir <directory>', 'path to application directory', getDefaultAppdirPath())
+    .action(({ loglvl, appdir }) => app(loglvl, appdir));
 
 // spend subcommand creates a spend transaction that is added to bitcoin.tax
 // program
@@ -36,7 +38,11 @@ program
 //     );
 
 // init subcommand initialises config
-program.command('init').description('initialise factoidd config').action(init);
+program
+    .command('init')
+    .description('initialise factoidd config')
+    .option('-d --appdir <directory>', 'path to application directory', getDefaultAppdirPath())
+    .action(({ appdir }) => init(appdir));
 
 // Get command line args
 program.parse(process.argv);

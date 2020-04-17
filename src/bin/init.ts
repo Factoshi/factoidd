@@ -5,14 +5,14 @@ import {
     createAddressConfig,
     createOptionsConfig,
     createAppdirIfNotExist,
-    getDefaultConfigPath,
+    getConfigPath,
 } from '../lib';
 
 /**
  *
  * @param path
  */
-export async function init() {
+export async function init(appdir: string) {
     try {
         // Build the config.
         const factomd = await createFactomdConfig();
@@ -21,8 +21,8 @@ export async function init() {
         const config = yaml.safeDump({ factomd, addresses, options });
         console.log(`${config}`);
 
-        createAppdirIfNotExist();
-        const path = getDefaultConfigPath();
+        createAppdirIfNotExist(appdir);
+        const path = getConfigPath(appdir);
 
         // Write config to config file.
         console.log(`Writing config to ${path}`);

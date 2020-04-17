@@ -17,7 +17,7 @@ import { APP_DIR, CONFIG_FILENAME, DATABASE_FILENAME } from './constants';
 /**
  * Gets the absolute path to the app directory.
  */
-function getAppdirPath() {
+export function getDefaultAppdirPath() {
     const homedir = os.homedir();
     return path.join(homedir, APP_DIR);
 }
@@ -25,16 +25,14 @@ function getAppdirPath() {
 /**
  * Gets the absolute path to the config file.
  */
-export function getDefaultConfigPath() {
-    const appdir = getAppdirPath();
+export function getConfigPath(appdir: string) {
     return path.join(appdir, CONFIG_FILENAME);
 }
 
 /**
  * Gets the absolute path to the database file.
  */
-export function getDefaultDatabasePath() {
-    const appdir = getAppdirPath();
+export function getDatabasePath(appdir: string) {
     return path.join(appdir, DATABASE_FILENAME);
 }
 
@@ -42,8 +40,7 @@ export function getDefaultDatabasePath() {
  * Creates an app directory in the home directory if it does not already exist.
  * @returns Absolute path to app directory
  */
-export function createAppdirIfNotExist() {
-    const appdir = getAppdirPath();
+export function createAppdirIfNotExist(appdir: string) {
     const appdirExists = fs.existsSync(appdir);
     if (!appdirExists) {
         console.log(`Creating app directory at: ${appdir}`);
