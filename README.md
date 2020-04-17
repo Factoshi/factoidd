@@ -9,7 +9,7 @@ Fatoidd tracks factoid receipts in a fiat currency of your choice. Factoidd will
 -   **Node.js**.
     Installation instructions: https://nodejs.org/en/download/package-manager/
 -   **A Cryptocompare API key**. Get your key here: https://min-api.cryptocompare.com/. There is a free tier.
--   **Optional: a bitcoin.tax account**. Referall signup link: https://bitcoin.tax/r/3DJmuGLt
+-   **Optional: a bitcoin.tax account**. Referral signup link: https://bitcoin.tax/r/3DJmuGLt
 
 ## Installation
 
