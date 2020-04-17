@@ -32,4 +32,4 @@ jobs:
                   FACTOM_HOST: api.factomd.net
                   FACTOM_PORT: 443
                   FACTOM_PATH: '/v2'
-                  FACTOM_PROTOCOl: 'https'
+                  FACTOM_PROTOCOL: 'https'
