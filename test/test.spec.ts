@@ -81,12 +81,12 @@ describe('Test Config', () => {
             addresses: [
                 {
                     address: 'FA2uheFcSNM7cDBqbunyNWmRbEbRqPPRFp2m7aMyK3dR8axe7sXf',
-                    currency: 'GBP',
                     coinbase: true,
                     nonCoinbase: false,
                 },
             ],
             options: {
+                currency: 'GBP',
                 cryptocompare: '32f0da139826ba95fb648319d88b86e205a754b959fd0fd839d06e4e1e37a584',
                 bitcoinTax: true,
                 bitcoinTaxKey: '02446189233ae40e',
@@ -135,7 +135,7 @@ describe('Test Transactions', async () => {
         const factom = newFactom();
         const tx = await factom.cli.getTransaction(txhash);
 
-        await saveNewTransaction(addressConf, table, tx);
+        await saveNewTransaction(addressConf, table, tx, 'GBP');
         const dbtx = await db.get('SELECT  receivedFCT FROM transactions WHERE txhash = ?', txhash);
         assert.deepStrictEqual(dbtx, { receivedFCT: 4.8 });
     });
@@ -152,7 +152,7 @@ describe('Test Transactions', async () => {
         const factom = newFactom();
         const tx = await factom.cli.getTransaction(txhash);
 
-        await saveNewTransaction(addressConf, table, tx);
+        await saveNewTransaction(addressConf, table, tx, 'GBP');
         const dbtx = await db.get('SELECT * FROM transactions WHERE txhash = ?', txhash);
         assert.isUndefined(dbtx);
     });
@@ -169,7 +169,7 @@ describe('Test Transactions', async () => {
         const factom = newFactom();
         const tx = await factom.cli.getTransaction(txhash);
 
-        await saveNewTransaction(addressConf, table, tx);
+        await saveNewTransaction(addressConf, table, tx, 'GBP');
         const dbtx = await db.get('SELECT receivedFCT FROM transactions WHERE txhash = ?', txhash);
         assert.deepStrictEqual(dbtx, { receivedFCT: 5.1132800000000005 });
     });
@@ -186,7 +186,7 @@ describe('Test Transactions', async () => {
         const factom = newFactom();
         const tx = await factom.cli.getTransaction(txhash);
 
-        await saveNewTransaction(addressConf, table, tx);
+        await saveNewTransaction(addressConf, table, tx, 'GBP');
         const dbtx = await db.get('SELECT * FROM transactions WHERE txhash = ?', txhash);
         assert.isUndefined(dbtx);
     });
@@ -203,7 +203,7 @@ describe('Test Transactions', async () => {
         const factom = newFactom();
         const tx = await factom.cli.getTransaction(txhash);
 
-        await saveNewTransaction(addressConf, table, tx);
+        await saveNewTransaction(addressConf, table, tx, 'GBP');
         const dbtx = await db.get('SELECT * FROM transactions WHERE txhash = ?', txhash);
         assert.isUndefined(dbtx);
     });

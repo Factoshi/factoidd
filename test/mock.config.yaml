@@ -5,10 +5,10 @@ factomd:
     protocol: http
 addresses:
     - address: FA2uheFcSNM7cDBqbunyNWmRbEbRqPPRFp2m7aMyK3dR8axe7sXf
-      currency: GBP
       coinbase: true
       nonCoinbase: false
 options:
+    currency: GBP
     cryptocompare: 32f0da139826ba95fb648319d88b86e205a754b959fd0fd839d06e4e1e37a584
     bitcoinTax: true
     bitcoinTaxKey: 02446189233ae40e
