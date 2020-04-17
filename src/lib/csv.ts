@@ -16,14 +16,18 @@ export function createIncomeCSVFile(appdir: string, address: string) {
 
     const csvFile = resolve(incomeDirectory, `${address}.csv`);
     if (!existsSync(csvFile)) {
+        logger.debug(`Creating CSV file: ${csvFile}`);
         appendFileSync(csvFile, 'date,height,txhash,receivedFCT,price,currency\n');
     }
 }
 
 export async function batchUpdateCSV(db: TransactionTable, appDirectory: string) {
     const transactions = await db.getTransactionsNotWrittenToCSV();
-    logger.info(`Appending ${transactions.length} transaction(s) to CSV`);
+    if (transactions.length === 0) {
+        return;
+    }
 
+    logger.info(`Appending ${transactions.length} transaction(s) to CSV`);
     for (const tx of transactions) {
         const { address, date, height, txhash, receivedFCT, price, currency, rowid } = tx;
         const csvFile = resolve(appDirectory, 'csv', 'income', `${address}.csv`);

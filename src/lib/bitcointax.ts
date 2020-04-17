@@ -79,9 +79,12 @@ function commitTransaction(data: AddTransactionData, keys: Keys) {
  */
 export async function batchUpdateIncome(db: TransactionTable, keys: Keys, minTime = 500) {
     const transactions = await db.getUncommittedTransactions();
+    if (transactions.length === 0) {
+        return;
+    }
     const bottleneck = new Bottleneck({ minTime });
-    logger.info(`Committing ${transactions.length} transaction(s) to bitcoin.tax`);
 
+    logger.info(`Committing ${transactions.length} transaction(s) to bitcoin.tax`);
     for (let [i, { rowid, ...tx }] of transactions.entries()) {
         if (i % 10 === 0) {
             logger.info(`Commiting transaction ${i} of ${transactions.length} to bitoin.tax`);

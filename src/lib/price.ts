@@ -45,9 +45,12 @@ async function getPrice(currency: string, timestamp: number, secret: string) {
  */
 export async function batchUpdatePrice(db: TransactionTable, secret: string, minTime = 500) {
     const transactions = await db.getTransactionsWithNullPrice();
+    if (transactions.length === 0) {
+        return;
+    }
     const bottleneck = new Bottleneck({ minTime });
-    logger.info(`Fetching price data for ${transactions.length} transaction(s)`);
 
+    logger.info(`Fetching price data for ${transactions.length} transaction(s)`);
     for (let [i, { rowid, currency, timestamp, txhash }] of transactions.entries()) {
         if (i % 10 === 0) {
             logger.info(`Fetching price data for transaction ${i} of ${transactions.length}`);
