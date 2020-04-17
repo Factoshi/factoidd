@@ -30,6 +30,7 @@ export class Factom {
         try {
             logger.info('Testing factomd connection');
             await this.cli.getHeights();
+            logger.debug('Successfully connected to factomd');
         } catch (e) {
             logger.error('Could not contact factomd: ', e);
             process.exit(1);
