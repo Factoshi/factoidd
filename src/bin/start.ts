@@ -48,21 +48,24 @@ export async function app(level: string, appdir: string) {
         stderrLevels: ['error'],
     });
     logger.add(consoleTransport);
-    logger.info(`Log level: ${level}`);
+
+    // Log args
+    logger.warn(`Log level: ${level}`);
+    logger.warn(`App directory: ${appdir}`);
 
     // Instantiate Config singleton.
     const configPath = getConfigPath(appdir);
     const config = new Config(configPath);
-
-    // Instantiate factom and check connection to factomd.
-    const factom = new Factom(config.factomd);
-    await factom.testConnection();
 
     // Open database connection and instantiate table classes.
     const dbPath = getDatabasePath(appdir);
     const db = await initialiseDatabase(dbPath);
     const transactionTable = new TransactionTable(db);
     await transactionTable.createTransactionTable();
+
+    // Instantiate factom and check connection to factomd.
+    const factom = new Factom(config.factomd);
+    await factom.testConnection();
 
     // Create the CSV files to record transactions
     config.addresses.forEach(({ address }) => createIncomeCSVFile(appdir, address));
@@ -76,8 +79,8 @@ export async function app(level: string, appdir: string) {
     });
 
     // Scan blockchain for new transactions.
-    logger.info('Scanning blockchain for new transactions.');
-    logger.warn('Transactions will be processed after the scan is complete.');
+    logger.info('Scanning blockchain for new transactions');
+    logger.info('Transactions will be processed after the scan is complete');
     await emitNewTransactions(transactionTable, config.options.startHeight, factom);
 
     // Process all new found transactions.
