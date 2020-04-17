@@ -5,3 +5,4 @@ config/config.yaml
 docker-compose.yaml
 *.env
 build
+appdir

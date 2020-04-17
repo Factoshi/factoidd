@@ -15,7 +15,11 @@ program
     .command('start')
     .description('start daemon to listen and record income transactions.')
     .option('-l, --loglvl <level>', 'log output level', process.env.LOG_LEVEL || 'info')
-    .option('-d --appdir <directory>', 'path to application directory', getDefaultAppdirPath())
+    .option(
+        '-d --appdir <directory>',
+        'path to application directory',
+        process.env.APP_DIR || getDefaultAppdirPath()
+    )
     .action(({ loglvl, appdir }) => app(loglvl, appdir));
 
 // spend subcommand creates a spend transaction that is added to bitcoin.tax
@@ -41,7 +45,11 @@ program
 program
     .command('init')
     .description('initialise factoidd config')
-    .option('-d --appdir <directory>', 'path to application directory', getDefaultAppdirPath())
+    .option(
+        '-d --appdir <directory>',
+        'path to application directory',
+        process.env.APP_DIR || getDefaultAppdirPath()
+    )
     .action(({ appdir }) => init(appdir));
 
 // Get command line args
