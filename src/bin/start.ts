@@ -13,8 +13,9 @@ import {
     getConfigPath,
     getDatabasePath,
     initialiseDatabase,
-    createIncomeCSVFile,
+    createCSVFile,
     batchUpdateCSV,
+    CSVSubDir,
 } from '../lib';
 
 process.on('SIGTERM', () => process.exit(0));
@@ -68,14 +69,18 @@ export async function app(level: string, appdir: string) {
     await factom.testConnection();
 
     // Create the CSV files to record transactions
-    config.addresses.forEach(({ address }) => createIncomeCSVFile(appdir, address));
+    logger.info('Creating CSV files');
+    config.addresses.forEach(({ address }) => createCSVFile(appdir, address, CSVSubDir.INCOME));
 
     // Create the transaction listeners to save new transactions.
     factom.event.on('error', (e) => logger.error('Factom event error:', e));
     config.addresses.forEach((addressConf: AddressConfig) => {
         const { address } = addressConf;
+        const { currency } = config.options;
         logger.info(`Listening for new transactions to address ${address}`);
-        factom.event.on(address, (tx) => saveNewTransaction(addressConf, transactionTable, tx));
+        factom.event.on(address, (tx) =>
+            saveNewTransaction(addressConf, transactionTable, tx, currency)
+        );
     });
 
     // Scan blockchain for new transactions.
@@ -85,6 +90,6 @@ export async function app(level: string, appdir: string) {
 
     while (true) {
         await processSavedTransactions(transactionTable, config, appdir);
-        await new Promise((resolve) => setTimeout(resolve, 60000)); // Sleep for 1 minutes
+        await new Promise((resolve) => setTimeout(resolve, 60000)); // Sleep for 1 minute
     }
 }

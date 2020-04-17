@@ -1,4 +1,4 @@
-import { Transaction } from 'factom';
+import { Transaction, TransactionAddress } from 'factom';
 import axiosRetry, { exponentialDelay } from 'axios-retry';
 import axios from 'axios';
 
@@ -14,7 +14,8 @@ axiosRetry(axios, { retryDelay: exponentialDelay });
 function formatIncomeTransaction(
     tx: Transaction,
     conf: AddressConfig,
-    receivedFCT: number
+    receivedFCT: number,
+    currency: string
 ): TransactionRow {
     return {
         address: conf.address,
@@ -23,15 +24,20 @@ function formatIncomeTransaction(
         txhash: tx.id,
         height: tx.blockContext.directoryBlockHeight,
         symbol: 'FCT',
-        currency: conf.currency,
+        currency,
         receivedFCT,
     };
 }
 
-function sumFCToutputs(transaction: Transaction, address: string) {
+/**
+ * Sums transaction inputs or outputs from an array of TransactionAddress for given address
+ * @param txIO Array of TransactionAddress
+ * @param address Address to sum IO for
+ */
+export function sumFCTIO(txIO: TransactionAddress[], address: string) {
     // prettier-ignore
-    return transaction.factoidOutputs
-        .filter((outputs) => outputs.address === address)
+    return txIO
+        .filter((io) => io.address === address)
         .reduce((total, current) => (total += current.amount), 0) * Math.pow(10, -8);
 }
 
@@ -72,7 +78,12 @@ export async function emitNewTransactions(
  * Saves all relevant transactions.
  * @param {AddressConfig} conf Config for a specific address.
  */
-export function saveNewTransaction(conf: AddressConfig, db: TransactionTable, tx: Transaction) {
+export function saveNewTransaction(
+    conf: AddressConfig,
+    db: TransactionTable,
+    tx: Transaction,
+    currency: string
+) {
     const { address, coinbase, nonCoinbase } = conf;
     // Address may only record coinbase or non-coinbsae tranactions.
     const isCoinbase = tx.totalInputs === 0;
@@ -80,14 +91,14 @@ export function saveNewTransaction(conf: AddressConfig, db: TransactionTable, tx
         return;
     }
 
-    const received = sumFCToutputs(tx, address);
+    const received = sumFCTIO(tx.factoidOutputs, address);
     // Function only handles income transactions. If address did not received FCT then
     // it was not an income transaction.
     if (received === 0) {
         return;
     }
 
-    const txRow = formatIncomeTransaction(tx, conf, received);
+    const txRow = formatIncomeTransaction(tx, conf, received, currency);
 
     // Save it to the database. This is a critical step and the programme will exit if it fails.
     try {

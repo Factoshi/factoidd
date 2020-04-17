@@ -2,6 +2,7 @@ import commander from 'commander';
 import { init } from './init';
 import { app } from './start';
 import { getDefaultAppdirPath } from '../lib';
+import { spend } from './spend';
 var pjson = require('../../package.json');
 
 const program = new commander.Command();
@@ -23,23 +24,19 @@ program
     .action(({ loglvl, appdir }) => app(loglvl, appdir));
 
 // spend subcommand creates a spend transaction that is added to bitcoin.tax
-// program
-//     .command('spend')
-//     .description('record a spend transaction')
-//     .requiredOption(
-//         '--from <address>',
-//         'FCT address sending transaction. Can be public or private (required).'
-//     )
-//     .requiredOption(
-//         '--to <address>',
-//         'FCT address receiving transaction. Must be public FCT or EC address (required).'
-//     )
-//     .requiredOption('--amount <amount>', 'amount of FCT spent (required).')
-//     .option(
-//         '--send',
-//         'broadcasts the transaction to the Factom network. If --from is public, address must be stored in walletd.',
-//         false
-//     );
+program
+    .command('spend')
+    .description('record a spend transaction')
+    .requiredOption(
+        '--txid <transaction ID>',
+        'FCT address sending transaction. Can be public or private (required).'
+    )
+    .option(
+        '-d --appdir <directory>',
+        'path to application directory',
+        process.env.APP_DIR || getDefaultAppdirPath()
+    )
+    .action(({ txid, appdir }) => spend(txid, appdir));
 
 // init subcommand initialises config
 program

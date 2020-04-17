@@ -2,23 +2,52 @@ import { TransactionTable } from './db';
 import { logger } from './logger';
 import { existsSync, mkdirSync, appendFileSync } from 'fs';
 import { resolve } from 'path';
+import { to2DecimalPlaces } from './utils';
 
-export function createIncomeCSVFile(appdir: string, address: string) {
-    const csvDirectory = resolve(appdir, 'csv');
-    if (!existsSync(csvDirectory)) {
-        mkdirSync(csvDirectory);
+export enum CSVSubDir {
+    INCOME = 'income',
+    SPEND = 'spend',
+}
+
+export function createCSVFile(appdir: string, address: string, subdirType: CSVSubDir) {
+    const csvdir = resolve(appdir, 'csv');
+    if (!existsSync(csvdir)) {
+        mkdirSync(csvdir);
     }
 
-    const incomeDirectory = resolve(csvDirectory, 'income');
-    if (!existsSync(incomeDirectory)) {
-        mkdirSync(incomeDirectory);
+    const subdir = resolve(csvdir, subdirType);
+    if (!existsSync(subdir)) {
+        mkdirSync(subdir);
     }
 
-    const csvFile = resolve(incomeDirectory, `${address}.csv`);
+    const csvFile = resolve(subdir, `${address}.csv`);
     if (!existsSync(csvFile)) {
         logger.debug(`Creating CSV file: ${csvFile}`);
-        appendFileSync(csvFile, 'date,height,txhash,receivedFCT,price,currency\n');
+        appendFileSync(csvFile, 'date,height,txhash,volume,price,total,currency\n');
     }
+}
+
+interface CSVLine {
+    date: string;
+    height: number;
+    txhash: string;
+    volume: number;
+    price: number;
+    currency: string;
+}
+
+export function updateCSV(
+    address: string,
+    appDirectory: string,
+    { date, height, txhash, volume, price, currency }: CSVLine,
+    subdir: CSVSubDir
+) {
+    const csvFile = resolve(appDirectory, 'csv', subdir, `${address}.csv`);
+    const total = to2DecimalPlaces(price * volume);
+    appendFileSync(
+        csvFile,
+        [date, height, txhash, volume, price, total, currency].join(',') + '\n'
+    );
 }
 
 export async function batchUpdateCSV(db: TransactionTable, appDirectory: string) {
@@ -29,11 +58,12 @@ export async function batchUpdateCSV(db: TransactionTable, appDirectory: string)
 
     logger.info(`Appending ${transactions.length} transaction(s) to CSV`);
     for (const tx of transactions) {
-        const { address, date, height, txhash, receivedFCT, price, currency, rowid } = tx;
-        const csvFile = resolve(appDirectory, 'csv', 'income', `${address}.csv`);
-        appendFileSync(
-            csvFile,
-            [date, height, txhash, receivedFCT, price, currency].join(',') + '\n'
+        const { address, receivedFCT, rowid, price, ...rest } = tx;
+        updateCSV(
+            address,
+            appDirectory,
+            { volume: receivedFCT, price: price!, ...rest },
+            CSVSubDir.INCOME
         );
         await db.updateCSV(rowid, true).catch((e) => {
             // Failure to write to database after write to CSV is a fatal
@@ -41,11 +71,8 @@ export async function batchUpdateCSV(db: TransactionTable, appDirectory: string)
             // now an inconsistency between the CSV and the local database that will not be recovered
             // on restart.
             logger.error('Fatal error');
-            logger.error(`Remove transaction ${tx.txhash} from ${csvFile} before restarting`);
-            logger.error(e);
+            logger.error(`Remove transaction ${tx.txhash} from csv before restarting`, e);
             process.exit(1);
         });
     }
-
-    logger.info(`Appended ${transactions.length} to CSV`);
 }

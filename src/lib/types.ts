@@ -36,12 +36,12 @@ export interface FactomdConfig {
 
 export interface AddressConfig {
     address: string;
-    currency: string;
     coinbase: boolean;
     nonCoinbase: boolean;
 }
 
 export interface OptionsConfig {
+    currency: string;
     cryptocompare: string;
     bitcoinTax: boolean;
     bitcoinTaxSecret: string;

@@ -8,7 +8,11 @@ import Bottleneck from 'bottleneck';
 
 axiosRetry(axios, { retries: 2, retryDelay: exponentialDelay });
 
-async function getPrice(currency: string, timestamp: number, secret: string) {
+export async function getPrice(
+    currency: string,
+    timestamp: number,
+    secret: string
+): Promise<number> {
     // API can deliver per minute pricing if timestamp within past week, or hourly pricing
     // if timestamp was from before that. 600000 seconds is a week minus a little bit to be safe.
     // prettier-ignore
@@ -50,15 +54,12 @@ export async function batchUpdatePrice(db: TransactionTable, secret: string, min
     }
     const bottleneck = new Bottleneck({ minTime });
 
-    logger.info(`Fetching price data for ${transactions.length} transaction(s)`);
-    for (let [i, { rowid, currency, timestamp, txhash }] of transactions.entries()) {
+    for (let [i, { rowid, timestamp, txhash, currency }] of transactions.entries()) {
         if (i % 10 === 0) {
-            logger.info(`Fetching price data for transaction ${i} of ${transactions.length}`);
+            logger.info(`Fetching price data for transaction ${i + 1} of ${transactions.length}`);
         }
         const price = await bottleneck.schedule(() => getPrice(currency, timestamp, secret));
         await db.updatePrice(rowid, price);
         logger.debug(`Saved price ${price} ${currency} for transaction ${txhash}`);
     }
-
-    logger.info(`Finished fetching price data for ${transactions.length} transaction(s)`);
 }

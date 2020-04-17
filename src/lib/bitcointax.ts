@@ -8,7 +8,7 @@ import { TransactionRow } from './types';
 
 axiosRetry(axios, { retryDelay: exponentialDelay });
 
-enum BitcoinTaxAction {
+export enum BitcoinTaxAction {
     SELL = 'SELL',
     BUY = 'BUY',
     INCOME = 'INCOME',
@@ -33,7 +33,7 @@ interface AddTransactionData {
     price: number;
     memo: string;
     txhash: string;
-    recipient: string;
+    recipient?: string;
 }
 
 /**
@@ -56,7 +56,7 @@ function formatTransaction(txRow: TransactionRow, action: BitcoinTaxAction): Add
 /**
  * Commit tranaction to bitcoin.tax API
  */
-function commitTransaction(data: AddTransactionData, keys: Keys) {
+export function commitTransaction(data: AddTransactionData, keys: Keys) {
     try {
         const { bitcoinTaxKey, bitcoinTaxSecret } = keys;
         var headers = { 'X-APIKEY': bitcoinTaxKey, 'X-APISECRET': bitcoinTaxSecret };
@@ -84,10 +84,9 @@ export async function batchUpdateIncome(db: TransactionTable, keys: Keys, minTim
     }
     const bottleneck = new Bottleneck({ minTime });
 
-    logger.info(`Committing ${transactions.length} transaction(s) to bitcoin.tax`);
     for (let [i, { rowid, ...tx }] of transactions.entries()) {
         if (i % 10 === 0) {
-            logger.info(`Commiting transaction ${i} of ${transactions.length} to bitoin.tax`);
+            logger.info(`Commiting transaction ${i + 1} of ${transactions.length} to bitoin.tax`);
         }
         logger.debug(`Committing transaction ${tx.txhash} to bitoin.tax`);
 
@@ -100,11 +99,8 @@ export async function batchUpdateIncome(db: TransactionTable, keys: Keys, minTim
             // on restart. At the time of writing, there is no way to delete transactions from bitcoin.tax
             // via the API, so the inconsistency cannot be remedied in code.
             logger.error('Fatal error');
-            logger.error(`Remove transaction ${tx.txhash} from bitcoin.tax before restarting`);
-            logger.error(e);
+            logger.error(`Remove transaction ${tx.txhash} from bitcoin.tax before restarting`, e);
             process.exit(1);
         });
     }
-
-    logger.info(`Comitted ${transactions.length} transaction(s) to bitcoin.tax`);
 }

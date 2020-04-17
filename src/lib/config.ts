@@ -142,16 +142,6 @@ export async function createAddressConfig(
             },
         },
         {
-            type: 'input',
-            name: 'currency',
-            message: `${addressName}: What currency should be used for this address (e.g. USD, EUR, GBP)?`,
-            filter: (answer: string) => answer.toUpperCase(),
-            default: 'USD',
-            validate: (answer: string) => {
-                return answer.length === 3 || new Error('Currency symbol should be 3 characters.');
-            },
-        },
-        {
             type: 'confirm',
             name: 'coinbase',
             message: `${addressName}: Do you want to record coinbase transactions?`,
@@ -182,6 +172,15 @@ export async function createAddressConfig(
 
 export async function createOptionsConfig(): Promise<OptionsConfig> {
     const questions = [
+        {
+            type: 'input',
+            name: 'currency',
+            message: `What fiat currency are you using (e.g. USD, EUR, GBP)?`,
+            filter: (answer: string) => answer.toUpperCase(),
+            validate: (answer: string) => {
+                return answer.length === 3 || new Error('Currency symbol should be 3 characters.');
+            },
+        },
         {
             type: 'input',
             name: 'cryptocompare',
@@ -238,7 +237,6 @@ const Joi = require('joi').extend(require('joi-factom'));
 // Create joi schemas
 const addressConfigSchema: AddressConfig = {
     address: Joi.factom().factoidAddress('public').required(),
-    currency: Joi.string().alphanum().uppercase().length(3).required(),
     coinbase: Joi.boolean().required(),
     nonCoinbase: Joi.boolean().required(),
 };
@@ -251,6 +249,7 @@ const factomdConfigSchema: FactomdConfig = {
 };
 
 const optionsSchema: OptionsConfig = {
+    currency: Joi.string().alphanum().uppercase().length(3).required(),
     cryptocompare: Joi.string().alphanum().length(64).required(),
     bitcoinTax: Joi.boolean().required(),
     bitcoinTaxSecret: Joi.string().alphanum().length(32),
