@@ -45,7 +45,7 @@ sudo ln -s $PWD/factoidd.service /etc/systemd/system
 
 ### Init
 
-The first time you run the script, you will need to initialise the config. Note: if you did not copy the script into you path, you will need to prefix the below commands with `./`)
+The first time you run the script, you will need to initialise the config.
 
 ```
 factoidd init
