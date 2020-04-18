@@ -16,25 +16,24 @@ import {
     createCSVFile,
     batchUpdateCSV,
     CSVSubDir,
+    QuitListener,
 } from '../lib';
 
-process.on('SIGTERM', () => process.exit(0));
-process.on('SIGINT', () => process.exit(0));
-process.on('unhandledRejection', (_, promise) => {
-    console.error(promise);
-    process.exit(1);
-});
-
-export async function processSavedTransactions(db: TransactionTable, conf: Config, appdir: string) {
+export async function processSavedTransactions(
+    db: TransactionTable,
+    conf: Config,
+    appdir: string,
+    quitListener: QuitListener
+) {
     try {
         const { bitcoinTax, cryptocompare, startHeight, ...keys } = conf.options;
         await batchUpdatePrice(db, cryptocompare);
         if (bitcoinTax) {
-            await batchUpdateIncome(db, keys);
+            await batchUpdateIncome(db, keys, quitListener);
         } else {
             logger.debug('Skipping bitcoin.tax');
         }
-        await batchUpdateCSV(db, appdir);
+        await batchUpdateCSV(db, appdir, quitListener);
     } catch (e) {
         logger.error('Error while processing new transactions\n', e);
         logger.warn('Failed to finish processing transaction(s). Will try again later.');
@@ -43,6 +42,16 @@ export async function processSavedTransactions(db: TransactionTable, conf: Confi
 
 // Main function.
 export async function app(level: string, appdir: string) {
+    // There are instances where the programme should not shutdown immediately.
+    // quitListener controls shutdown process to allow critical transaction to complete.
+    const quitListener = new QuitListener();
+    process.on('SIGTERM', () => quitListener.setShouldQuit(true));
+    process.on('SIGINT', () => quitListener.setShouldQuit(true));
+    process.on('unhandledRejection', (_, promise) => {
+        console.error(promise);
+        process.exit(1);
+    });
+
     // Set logger.
     const consoleTransport = new winston.transports.Console({
         level: level,
@@ -89,7 +98,7 @@ export async function app(level: string, appdir: string) {
     await emitNewTransactions(transactionTable, config.options.startHeight, factom);
 
     while (true) {
-        await processSavedTransactions(transactionTable, config, appdir);
+        await processSavedTransactions(transactionTable, config, appdir, quitListener);
         await new Promise((resolve) => setTimeout(resolve, 60000)); // Sleep for 1 minute
     }
 }

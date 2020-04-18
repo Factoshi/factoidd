@@ -2,7 +2,7 @@ import { TransactionTable } from './db';
 import { logger } from './logger';
 import { existsSync, mkdirSync, appendFileSync } from 'fs';
 import { resolve } from 'path';
-import { to2DecimalPlaces, to6DecimalPlaces } from './utils';
+import { to2DecimalPlaces, to6DecimalPlaces, QuitListener } from './utils';
 
 export enum CSVSubDir {
     INCOME = 'income',
@@ -51,7 +51,7 @@ export function updateCSV(
     );
 }
 
-export async function batchUpdateCSV(db: TransactionTable, appdir: string) {
+export async function batchUpdateCSV(db: TransactionTable, appdir: string, ql: QuitListener) {
     const transactions = await db.getTransactionsNotWrittenToCSV();
     if (transactions.length === 0) {
         return;
@@ -60,6 +60,10 @@ export async function batchUpdateCSV(db: TransactionTable, appdir: string) {
     logger.info(`Appending ${transactions.length} transaction(s) to CSV`);
     for (const tx of transactions) {
         const { address, receivedFCT, rowid, price, ...rest } = tx;
+
+        // Prevent quit until CSV updated and recorded in database
+        ql.setCanQuit('csv', false);
+
         updateCSV(
             address,
             appdir,
@@ -75,6 +79,9 @@ export async function batchUpdateCSV(db: TransactionTable, appdir: string) {
             logger.error(`Remove transaction ${tx.txhash} from csv before restarting`, e);
             process.exit(1);
         });
+
+        // Allow quit following transactions
+        ql.setCanQuit('csv', true);
     }
     logger.info('Done!');
 }

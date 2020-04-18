@@ -12,6 +12,7 @@ import {
     batchUpdatePrice,
     Factom,
     saveNewTransaction,
+    QuitListener,
 } from '../src/lib';
 import {
     createMockDB,
@@ -39,7 +40,12 @@ describe('Test Bitcoin.tax', () => {
         await insertMockTransactions(table, txs);
         await addPriceToTransactions(table);
 
-        await batchUpdateIncome(table, { bitcoinTaxKey: 'key', bitcoinTaxSecret: 'secret' }, 0);
+        await batchUpdateIncome(
+            table,
+            { bitcoinTaxKey: 'key', bitcoinTaxSecret: 'secret' },
+            new QuitListener(),
+            0
+        );
         sandbox.assert.calledTwice(axios.post as any);
 
         // Assert that the transaction has been updated in the DB.
@@ -57,7 +63,12 @@ describe('Test Bitcoin.tax', () => {
         const txs2 = generateMockTransactions(1);
         await insertMockTransactions(table, txs2);
 
-        await batchUpdateIncome(table, { bitcoinTaxKey: 'key', bitcoinTaxSecret: 'secret' }, 0);
+        await batchUpdateIncome(
+            table,
+            { bitcoinTaxKey: 'key', bitcoinTaxSecret: 'secret' },
+            new QuitListener(),
+            0
+        );
         sandbox.assert.calledTwice(axios.post as any);
 
         // Assert that the transaction has been updated in the DB.
@@ -206,5 +217,27 @@ describe('Test Transactions', async () => {
         await saveNewTransaction(addressConf, table, tx, 'GBP');
         const dbtx = await db.get('SELECT * FROM transactions WHERE txhash = ?', txhash);
         assert.isUndefined(dbtx);
+    });
+});
+
+describe('Test util', () => {
+    it('shuts down gracefully', async () => {
+        const sandbox = sinon.createSandbox();
+        sandbox.stub(process, 'exit');
+
+        const quitListener = new QuitListener();
+        process.on('SIGTERM', () => quitListener.setShouldQuit(true));
+
+        quitListener.setCanQuit('test', false);
+        await new Promise((resolve) => {
+            process.once('SIGTERM', () => {
+                sandbox.assert.notCalled(process.exit as any);
+                resolve();
+            });
+            process.kill(process.pid, 'SIGTERM');
+        });
+
+        quitListener.setCanQuit('test', true);
+        sandbox.assert.calledOnce(process.exit as any);
     });
 });

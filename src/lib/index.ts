@@ -7,3 +7,4 @@ export { batchUpdateIncome, commitTransaction, BitcoinTaxAction } from './bitcoi
 export * from './types';
 export * from './config';
 export * from './csv';
+export { QuitListener } from './utils';

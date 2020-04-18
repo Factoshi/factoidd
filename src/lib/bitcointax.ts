@@ -5,6 +5,7 @@ import { TransactionTable } from './db';
 import { logger } from './logger';
 import Bottleneck from 'bottleneck';
 import { TransactionRow } from './types';
+import { QuitListener } from './utils';
 
 axiosRetry(axios, { retryDelay: exponentialDelay });
 
@@ -77,7 +78,12 @@ export async function commitTransaction(data: AddTransactionData, keys: Keys) {
  * @param bottleneck Rate limiter instance.
  * @param keys Bitcoin.tax keys.
  */
-export async function batchUpdateIncome(db: TransactionTable, keys: Keys, minTime = 500) {
+export async function batchUpdateIncome(
+    db: TransactionTable,
+    keys: Keys,
+    ql: QuitListener,
+    minTime = 500
+) {
     const transactions = await db.getUncommittedTransactions();
     if (transactions.length === 0) {
         return;
@@ -88,8 +94,11 @@ export async function batchUpdateIncome(db: TransactionTable, keys: Keys, minTim
         if (i % 10 === 0) {
             logger.info(`Commiting transaction ${i + 1} of ${transactions.length} to bitoin.tax`);
         }
-
         const data = formatTransaction(tx, BitcoinTaxAction.INCOME);
+
+        // Prevent quit until bitcoin.tax updated and recorded in database
+        ql.setCanQuit('bitcoin.tax', false);
+
         await bottleneck.schedule(() => commitTransaction(data, keys));
         await db.updateBitcoinTax(rowid, true).catch((e) => {
             // Failure to write to database after committing to bitcoin tax is a fatal
@@ -101,5 +110,8 @@ export async function batchUpdateIncome(db: TransactionTable, keys: Keys, minTim
             logger.error(`Remove transaction ${tx.txhash} from bitcoin.tax before restarting`, e);
             process.exit(1);
         });
+
+        // Allow quit following transactions
+        ql.setCanQuit('bitcoin.tax', true);
     }
 }
