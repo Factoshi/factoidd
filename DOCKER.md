@@ -43,7 +43,7 @@ If you wish to execute the `spend` subcommand with Docker, you can do so with th
 
 ```bash
 docker run -v --rm \
-    ~/.factoidd:/root/.factoidd \
+    -v ~/.factoidd:/root/.factoidd \
     --network="host" \
     factoshi/factoidd:latest spend --txid [txid]
 ```
