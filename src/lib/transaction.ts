@@ -87,7 +87,7 @@ function logNewTransaction(tx: TransactionRow) {
  * Saves all relevant transactions.
  * @param {AddressConfig} conf Config for a specific address.
  */
-export function saveNewTransaction(
+export async function saveNewTransaction(
     conf: AddressConfig,
     db: TransactionTable,
     tx: Transaction,
@@ -108,11 +108,11 @@ export function saveNewTransaction(
     }
 
     const txRow = formatIncomeTransaction(tx, conf, received, currency);
+    logNewTransaction(txRow);
 
     // Save it to the database. This is a critical step and the programme will exit if it fails.
     try {
-        logNewTransaction(txRow);
-        return db.insertUncommittedTransaction(txRow);
+        await db.insertUncommittedTransaction(txRow);
     } catch (e) {
         logger.error(`Fatal error. Failed to save transaction to database: `, e);
         process.exit(1);
