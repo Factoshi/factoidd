@@ -4,77 +4,9 @@
 
 Fatoidd tracks factoid receipts in a fiat currency of your choice. Factoidd will output a CSV and, optionally, will also push transactions to the cryptocurrency accounting website bitcoin.tax. Factoidd listens for new receipts and will backfil historical receipts to a block height of your choice.
 
-## Requirements
-
--   **Node.js**.
-    Installation instructions: https://nodejs.org/en/download/package-manager/
--   **A Cryptocompare API key**. Get your key here: https://min-api.cryptocompare.com/. There is a free tier.
--   **Optional: a bitcoin.tax account**. Referral signup link: https://bitcoin.tax/r/3DJmuGLt
-
 ## Installation
 
-Clone this repo and cd into the project.
+Factoidd is designed to work with both Systemd and Docker.
 
-```bash
-git clone https://github.com/Factoshi/factoidd.git && cd factoidd
-```
-
-Install the project dependencies and build from the source code.
-
-```bash
-npm install --production
-```
-
-Compile the source code.
-
-```bash
-npm run build
-```
-
-Optionally, you can symlink it into your PATH and setup a systemd service file. Tested on Ubuntu.
-
-```bash
-# symlink the entry script into your PATH
-sudo ln -s $PWD/factoidd /usr/local/bin
-
-# copy the example service file
-cp factoidd.service.example factoidd.service
-
-# edit the factoidd.service file to add your user and make any oher changes
-nano factoidd.service
-
-# symlink the service file into the systemd directory
-sudo ln -s $PWD/factoidd.service /etc/systemd/system/
-```
-
-## Running
-
-### Init
-
-The first time you run the script, you will need to initialise the config.
-
-```
-factoidd init
-```
-
-### Start
-
-You can backfill all historical income transctions and listen for new income transactions using the `start` subcommand. This command will run indefinitely. You can either daemonise it (e.g. with the systemd service file symlinked above) or run it at regular intervals to backfill transactions:
-
-```bash
-# Without systemd
-factoidd start
-
-# With systemd
-systemctl start factoidd
-```
-
-### Spend
-
-You can add an individual spend transactions using the `spend` subcommand:
-
-```
-factoid spend <transaction ID>
-```
-
-Run `factoidd --help` for further help.
+-   [Systemd instructions](./SYSTEMD.md)
+-   [Docker instructions](./DOCKER.md)
