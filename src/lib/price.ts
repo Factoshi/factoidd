@@ -54,12 +54,11 @@ export async function batchUpdatePrice(db: TransactionTable, secret: string, min
     }
     const bottleneck = new Bottleneck({ minTime });
 
-    for (let [i, { rowid, timestamp, txhash, currency }] of transactions.entries()) {
+    for (let [i, { rowid, timestamp, currency }] of transactions.entries()) {
         if (i % 10 === 0) {
             logger.info(`Fetching price data for transaction ${i + 1} of ${transactions.length}`);
         }
         const price = await bottleneck.schedule(() => getPrice(currency, timestamp, secret));
         await db.updatePrice(rowid, price);
-        logger.debug(`Saved price ${price} ${currency} for transaction ${txhash}`);
     }
 }

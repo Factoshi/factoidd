@@ -88,7 +88,6 @@ export async function batchUpdateIncome(db: TransactionTable, keys: Keys, minTim
         if (i % 10 === 0) {
             logger.info(`Commiting transaction ${i + 1} of ${transactions.length} to bitoin.tax`);
         }
-        logger.debug(`Committing transaction ${tx.txhash}`);
 
         const data = formatTransaction(tx, BitcoinTaxAction.INCOME);
         await bottleneck.schedule(() => commitTransaction(data, keys));

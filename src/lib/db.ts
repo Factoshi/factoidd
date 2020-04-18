@@ -65,14 +65,13 @@ export class TransactionTable {
     }
 
     public getTransactionsWithNullPrice(): Promise<
-        { rowid: number; currency: string; timestamp: number; txhash: string }[]
+        { rowid: number; currency: string; timestamp: number }[]
     > {
         return this.db.all(`
             SELECT 
                 rowid, 
                 currency, 
-                timestamp, 
-                txhash
+                timestamp
             FROM 
                 transactions
             WHERE

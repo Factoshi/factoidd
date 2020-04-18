@@ -4,7 +4,7 @@ import axios from 'axios';
 
 import { TransactionRow } from './types';
 import { AddressConfig } from './types';
-import { toInteger } from './utils';
+import { toInteger, to6DecimalPlaces } from './utils';
 import { TransactionTable } from './db';
 import { logger } from './logger';
 import { Factom } from './factom';
@@ -74,6 +74,15 @@ export async function emitNewTransactions(
     }
 }
 
+function logNewTransaction(tx: TransactionRow) {
+    logger.info('Found new income transaction');
+    logger.info(`Transaction ID:    ${tx.txhash}`);
+    logger.info(`Date:              ${tx.date}`);
+    logger.info(`Height:            ${tx.height}`);
+    logger.info(`Address:           ${tx.address}`);
+    logger.info(`Amount:            ${to6DecimalPlaces(tx.receivedFCT)}`);
+}
+
 /**
  * Saves all relevant transactions.
  * @param {AddressConfig} conf Config for a specific address.
@@ -102,9 +111,7 @@ export function saveNewTransaction(
 
     // Save it to the database. This is a critical step and the programme will exit if it fails.
     try {
-        logger.debug(
-            `Saving new transaction for address ${txRow.address} at block ${txRow.height}`
-        );
+        logNewTransaction(txRow);
         return db.insertUncommittedTransaction(txRow);
     } catch (e) {
         logger.error(`Fatal error. Failed to save transaction to database: `, e);
