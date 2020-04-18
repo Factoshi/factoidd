@@ -56,12 +56,12 @@ function formatTransaction(txRow: TransactionRow, action: BitcoinTaxAction): Add
 /**
  * Commit tranaction to bitcoin.tax API
  */
-export function commitTransaction(data: AddTransactionData, keys: Keys) {
+export async function commitTransaction(data: AddTransactionData, keys: Keys) {
     try {
         const { bitcoinTaxKey, bitcoinTaxSecret } = keys;
         var headers = { 'X-APIKEY': bitcoinTaxKey, 'X-APISECRET': bitcoinTaxSecret };
         var uri = 'https://api.bitcoin.tax/v1/transactions';
-        return axios.post(uri, data, { headers });
+        await axios.post(uri, data, { headers });
     } catch (e) {
         if (e.response.status === 401) {
             logger.error('Invalid bitcoin.tax credentials. Please check and try again.');
