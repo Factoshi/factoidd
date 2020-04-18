@@ -10,9 +10,11 @@ import {
     logger,
     updateCSV,
     CSVSubDir,
+    createCSVFile,
 } from '../lib';
 import { sumFCTIO } from '../lib/transaction';
 import { Transaction } from 'factom';
+import { toInteger } from '../lib/utils';
 
 interface Input {
     amount: number;
@@ -44,7 +46,8 @@ function getRelevantInputs(config: Config, tx: Transaction): Input[] {
 async function getTransactionPrice(config: Config, tx: Transaction) {
     try {
         const { currency, cryptocompare } = config.options;
-        const price = await getPrice(currency, tx.timestamp, cryptocompare);
+        const timestamp = toInteger(tx.timestamp / 1000);
+        const price = await getPrice(currency, timestamp, cryptocompare);
         return price;
     } catch (e) {
         logger.error('Could not get price. Spend transaction has not been recorded', e);
@@ -112,9 +115,11 @@ export async function spend(txid: string, appdir: string) {
             volume: amount,
             txhash: tx.id,
             currency: config.options.currency,
-            date: new Date(tx.timestamp).toString(),
+            date: new Date(tx.timestamp).toISOString(),
             price,
         };
+        createCSVFile(appdir, address, CSVSubDir.SPEND);
         updateCSV(address, appdir, csvLine, CSVSubDir.SPEND);
     });
+    logger.info('Transaction written to CSV');
 }
