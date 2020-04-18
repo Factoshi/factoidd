@@ -1,0 +1,11 @@
+.github
+build
+node_modules
+test
+.gitignore
+appdir
+commitlint.config.js
+factoidd.service
+factoidd.service.example
+README.md
+**/*.env
