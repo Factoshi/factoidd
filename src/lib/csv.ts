@@ -51,7 +51,7 @@ export function updateCSV(
     );
 }
 
-export async function batchUpdateCSV(db: TransactionTable, appDirectory: string) {
+export async function batchUpdateCSV(db: TransactionTable, appdir: string) {
     const transactions = await db.getTransactionsNotWrittenToCSV();
     if (transactions.length === 0) {
         return;
@@ -62,7 +62,7 @@ export async function batchUpdateCSV(db: TransactionTable, appDirectory: string)
         const { address, receivedFCT, rowid, price, ...rest } = tx;
         updateCSV(
             address,
-            appDirectory,
+            appdir,
             { volume: receivedFCT, price: price!, ...rest },
             CSVSubDir.INCOME
         );
