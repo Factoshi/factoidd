@@ -76,4 +76,5 @@ export async function batchUpdateCSV(db: TransactionTable, appdir: string) {
             process.exit(1);
         });
     }
+    logger.info('Done!');
 }
