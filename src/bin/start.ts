@@ -17,19 +17,20 @@ import {
     batchUpdateCSV,
     CSVSubDir,
     QuitListener,
+    KeyConfig,
 } from '../lib';
 
 async function processSavedTransactions(
     db: TransactionTable,
-    conf: Config,
+    keys: KeyConfig,
     appdir: string,
     quitListener: QuitListener
 ) {
     try {
-        const { bitcoinTax, cryptocompare, startHeight, ...keys } = conf.options;
+        const { bitcoinTax, cryptocompare, ...bitcoinTaxKeys } = keys;
         await batchUpdatePrice(db, cryptocompare);
         if (bitcoinTax) {
-            await batchUpdateIncome(db, keys, quitListener);
+            await batchUpdateIncome(db, bitcoinTaxKeys, quitListener);
         } else {
             logger.debug('Skipping bitcoin.tax');
         }
@@ -98,7 +99,7 @@ export async function start(level: string, appdir: string) {
     await emitNewTransactions(transactionTable, config.options.startHeight, factom);
 
     while (true) {
-        await processSavedTransactions(transactionTable, config, appdir, quitListener);
+        await processSavedTransactions(transactionTable, config.keys, appdir, quitListener);
         await new Promise((resolve) => setTimeout(resolve, 60000)); // Sleep for 1 minute
     }
 }

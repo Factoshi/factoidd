@@ -3,7 +3,8 @@ import yaml from 'js-yaml';
 import {
     createFactomdConfig,
     createAddressConfig,
-    createOptionsConfig,
+    createKeyConfig,
+    createOptionConfig,
     createAppdirIfNotExist,
     getConfigPath,
 } from '../lib';
@@ -17,8 +18,9 @@ export async function init(appdir: string) {
         // Build the config.
         const factomd = await createFactomdConfig();
         const addresses = await createAddressConfig();
-        const options = await createOptionsConfig();
-        const config = yaml.safeDump({ factomd, addresses, options });
+        const keys = await createKeyConfig();
+        const options = await createOptionConfig();
+        const config = yaml.safeDump({ factomd, addresses, keys, options });
         console.log(`${config}`);
 
         createAppdirIfNotExist(appdir);

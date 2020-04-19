@@ -11,6 +11,8 @@ import {
     updateCSV,
     CSVSubDir,
     createCSVFile,
+    FactomdConfig,
+    AddressConfig,
 } from '../lib';
 import { sumFCTIO } from '../lib/transaction';
 import { Transaction } from 'factom';
@@ -22,9 +24,9 @@ interface Input {
     name: string;
 }
 
-async function getTransaction(config: Config, txid: string) {
+async function getTransaction(config: FactomdConfig, txid: string) {
     try {
-        const factom = new Factom(config.factomd);
+        const factom = new Factom(config);
         const tx = await factom.cli.getTransaction(txid);
         return tx;
     } catch (e) {
@@ -33,9 +35,9 @@ async function getTransaction(config: Config, txid: string) {
     }
 }
 
-function getRelevantInputs(config: Config, tx: Transaction): Input[] {
+function getRelevantInputs(addresses: AddressConfig[], tx: Transaction): Input[] {
     const inputs = [];
-    for (const { address, name } of config.addresses) {
+    for (const { address, name } of addresses) {
         const amount = sumFCTIO(tx.inputs, address);
         if (amount > 0) {
             inputs.push({ name, address, amount });
@@ -50,7 +52,9 @@ function getRelevantInputs(config: Config, tx: Transaction): Input[] {
 
 async function getTransactionPrice(config: Config, tx: Transaction) {
     try {
-        const { currency, cryptocompare } = config.options;
+        const { currency } = config.options;
+        const { cryptocompare } = config.keys;
+
         const timestamp = toInteger(tx.timestamp / 1000);
         const price = await getPrice(currency, timestamp, cryptocompare);
         logger.info(`FCT price at time of transaction: ${price} ${currency}`);
@@ -63,8 +67,10 @@ async function getTransactionPrice(config: Config, tx: Transaction) {
 
 async function commitToBitcoinTax(config: Config, price: number, inputs: Input[], tx: Transaction) {
     try {
-        if (config.options.bitcoinTax) {
-            const { bitcoinTaxKey, bitcoinTaxSecret, currency } = config.options;
+        const { bitcoinTaxKey, bitcoinTaxSecret, bitcoinTax } = config.keys;
+        const { currency } = config.options;
+
+        if (bitcoinTax) {
             const spendTransaction = {
                 date: new Date(tx.timestamp).toString(),
                 action: BitcoinTaxAction.SPEND,
@@ -98,10 +104,10 @@ export async function spend(txid: string, appdir: string) {
         const config = new Config(configPath);
 
         // Get the transaction
-        const tx = await getTransaction(config, txid);
+        const tx = await getTransaction(config.factomd, txid);
 
         // Get relevant inputs
-        const inputs = getRelevantInputs(config, tx);
+        const inputs = getRelevantInputs(config.addresses, tx);
 
         // Get the price of FCT at the time of the transaction
         const price = await getTransactionPrice(config, tx);

@@ -31,8 +31,6 @@ export interface FactomdConfig {
     port: number;
     path: string;
     protocol: string;
-    user?: string;
-    password?: string;
 }
 
 export interface AddressConfig {
@@ -44,15 +42,19 @@ export interface AddressConfig {
 
 export interface OptionsConfig {
     currency: string;
-    cryptocompare: string;
+    startHeight: number;
+}
+
+export interface KeyConfig {
     bitcoinTax: boolean;
     bitcoinTaxSecret: string;
     bitcoinTaxKey: string;
-    startHeight: number;
+    cryptocompare: string;
 }
 
 export interface IConfig {
     factomd: FactomdConfig;
     addresses: AddressConfig[];
     options: OptionsConfig;
+    keys: KeyConfig;
 }

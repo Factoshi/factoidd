@@ -4,7 +4,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-import { FactomdConfig, AddressConfig, OptionsConfig, IConfig } from '.';
+import { FactomdConfig, AddressConfig, OptionsConfig, IConfig, KeyConfig } from '.';
 import yaml from 'js-yaml';
 import { logger } from '.';
 
@@ -183,17 +183,8 @@ export async function createAddressConfig(
     }
 }
 
-export async function createOptionsConfig(): Promise<OptionsConfig> {
+export async function createKeyConfig(): Promise<KeyConfig> {
     const questions = [
-        {
-            type: 'input',
-            name: 'currency',
-            message: `What fiat currency are you using (e.g. USD, EUR, GBP)?`,
-            filter: (answer: string) => answer.toUpperCase(),
-            validate: (answer: string) => {
-                return answer.length === 3 || new Error('Currency symbol should be 3 characters.');
-            },
-        },
         {
             type: 'input',
             name: 'cryptocompare',
@@ -226,6 +217,23 @@ export async function createOptionsConfig(): Promise<OptionsConfig> {
                 return /^[A-Fa-f0-9]{32}$/.test(key) || new Error('Expected 32 char hex key.');
             },
         },
+    ];
+
+    const answers: KeyConfig = await inquirer.prompt(questions);
+    return answers;
+}
+
+export async function createOptionConfig(): Promise<OptionsConfig> {
+    const questions = [
+        {
+            type: 'input',
+            name: 'currency',
+            message: `What fiat currency are you using (e.g. USD, EUR, GBP)?`,
+            filter: (answer: string) => answer.toUpperCase(),
+            validate: (answer: string) => {
+                return answer.length === 3 || new Error('Currency symbol should be 3 characters.');
+            },
+        },
         {
             type: 'number',
             name: 'startHeight',
@@ -237,7 +245,7 @@ export async function createOptionsConfig(): Promise<OptionsConfig> {
         },
     ];
 
-    const answers = await inquirer.prompt(questions);
+    const answers: OptionsConfig = await inquirer.prompt(questions);
     return answers;
 }
 
@@ -264,11 +272,14 @@ const factomdConfigSchema: FactomdConfig = {
 
 const optionsSchema: OptionsConfig = {
     currency: Joi.string().alphanum().uppercase().length(3).required(),
+    startHeight: Joi.number().positive().default(143400),
+};
+
+const keySchema: KeyConfig = {
     cryptocompare: Joi.string().alphanum().length(64).required(),
     bitcoinTax: Joi.boolean().required(),
     bitcoinTaxSecret: Joi.string().alphanum().length(32),
     bitcoinTaxKey: Joi.string().alphanum().length(16),
-    startHeight: Joi.number().positive().default(143400),
 };
 
 const configSchema: Config = {
@@ -278,14 +289,16 @@ const configSchema: Config = {
         path: '/v2',
         protocol: 'https',
     }),
+    keys: Joi.object(keySchema),
     addresses: Joi.array().has(addressConfigSchema).required(),
-    options: Joi.object(optionsSchema).default({ startHeight: 143400, minTime: 100 }),
+    options: Joi.object(optionsSchema).default({ startHeight: 143400, minTime: 500 }),
 };
 
 export class Config implements IConfig {
     public factomd: FactomdConfig;
     public addresses: AddressConfig[];
     public options: OptionsConfig;
+    public keys: KeyConfig;
 
     constructor(path: string) {
         logger.info(`Reading config from: ${path}`);
@@ -298,8 +311,16 @@ export class Config implements IConfig {
                 throw error;
             }
 
+            if (
+                (value.keys.bitcoinTax && !value.keys.bitcoinTaxSecret) ||
+                (value.keys.bitcoinTax && !value.keys.bitcoinTaxKey)
+            ) {
+                throw new Error('Must provide bitcoin.tax secret and key when bitoinTax true');
+            }
+
             this.factomd = value.factomd;
             this.addresses = value.addresses;
+            this.keys = value.keys;
             this.options = value.options;
         } catch (e) {
             logger.error('Unable to load config');

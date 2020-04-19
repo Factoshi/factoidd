@@ -97,12 +97,14 @@ describe('Test Config', () => {
                     nonCoinbase: false,
                 },
             ],
-            options: {
-                currency: 'GBP',
+            keys: {
                 cryptocompare: '32f0da139826ba95fb648319d88b86e205a754b959fd0fd839d06e4e1e37a584',
                 bitcoinTax: true,
                 bitcoinTaxKey: '02446189233ae40e',
                 bitcoinTaxSecret: 'acf5786d9d466e5d6dc150b605a3ca7c',
+            },
+            options: {
+                currency: 'GBP',
                 startHeight: 143400,
             },
         });
