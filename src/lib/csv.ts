@@ -9,46 +9,51 @@ export enum CSVSubDir {
     SPEND = 'spend',
 }
 
-export function createCSVFile(appdir: string, address: string, subdirType: CSVSubDir) {
-    const csvdir = resolve(appdir, 'csv');
-    if (!existsSync(csvdir)) {
-        mkdirSync(csvdir);
-    }
-
-    const subdir = resolve(csvdir, subdirType);
-    if (!existsSync(subdir)) {
-        mkdirSync(subdir);
-    }
-
-    const csvFile = resolve(subdir, `${address}.csv`);
-    if (!existsSync(csvFile)) {
-        logger.debug(`Creating CSV file: ${csvFile}`);
-        appendFileSync(csvFile, 'date,height,txhash,volume,price,total,currency\n');
-    }
-}
-
-interface CSVLine {
+interface CSVData {
+    name: string;
     date: string;
     height: number;
     txhash: string;
+    address: string;
     volume: number;
     price: number;
     currency: string;
 }
 
-export function updateCSV(
-    address: string,
-    appDirectory: string,
-    { date, height, txhash, volume, price, currency }: CSVLine,
-    subdir: CSVSubDir
-) {
-    const csvFile = resolve(appDirectory, 'csv', subdir, `${address}.csv`);
-    const total = to2DecimalPlaces(price * volume);
-    volume = to6DecimalPlaces(volume);
-    appendFileSync(
-        csvFile,
-        [date, height, txhash, volume, price, total, currency].join(',') + '\n'
-    );
+function resolveCSVPath(appdir: string, subdir: CSVSubDir) {
+    return resolve(appdir, 'csv', subdir);
+}
+
+export function createCSVFile(appdir: string, subdir: CSVSubDir, name: string) {
+    const csvdir = resolveCSVPath(appdir, subdir);
+
+    if (!existsSync(csvdir)) {
+        mkdirSync(csvdir, { recursive: true });
+    }
+
+    const csvFile = resolve(csvdir, `${name}.csv`);
+    if (!existsSync(csvFile)) {
+        logger.debug(`Creating CSV file: ${csvFile}`);
+        appendFileSync(csvFile, 'date,height,address,txhash,volume,price,total,currency\n');
+    }
+}
+
+export function updateCSV(appdir: string, subdir: CSVSubDir, csvData: CSVData) {
+    const { date, height, txhash, volume, price, currency, address, name } = csvData;
+    // prettier-ignore
+    const csvStr = [
+        date, 
+        height, 
+        address, 
+        txhash, 
+        to6DecimalPlaces(volume), // volume
+        price, 
+        to2DecimalPlaces(price * volume), // total
+        currency
+    ].join(',') + '\n';
+
+    const csvFile = resolve(resolveCSVPath(appdir, subdir), `${name}.csv`);
+    appendFileSync(csvFile, csvStr);
 }
 
 export async function batchUpdateCSV(db: TransactionTable, appdir: string, ql: QuitListener) {
@@ -56,27 +61,21 @@ export async function batchUpdateCSV(db: TransactionTable, appdir: string, ql: Q
     if (transactions.length === 0) {
         return;
     }
-
     logger.info(`Appending ${transactions.length} transaction(s) to CSV`);
-    for (const tx of transactions) {
-        const { address, receivedFCT, rowid, price, ...rest } = tx;
 
+    for (const { rowid, receivedFCT: volume, price, ...rest } of transactions) {
         // Prevent quit until CSV updated and recorded in database
         ql.setCanQuit('csv', false);
 
-        updateCSV(
-            address,
-            appdir,
-            { volume: receivedFCT, price: price!, ...rest },
-            CSVSubDir.INCOME
-        );
+        updateCSV(appdir, CSVSubDir.INCOME, { volume, price: price!, ...rest });
         await db.updateCSV(rowid, true).catch((e) => {
-            // Failure to write to database after write to CSV is a fatal
-            // error that cannot be recovered and requires user intervention. This is because there is
-            // now an inconsistency between the CSV and the local database that will not be recovered
-            // on restart.
+            /**
+             * Failure to write to database after write to CSV is a fatal error that cannot be recovered
+             * and requires user intervention. This is because there is now an inconsistency between the CSV
+             * and the local database that will not be recovered on restart.
+             */
             logger.error('Fatal error');
-            logger.error(`Remove transaction ${tx.txhash} from csv before restarting`, e);
+            logger.error(`Remove transaction ${rest.txhash} from csv before restarting`, e);
             process.exit(1);
         });
 

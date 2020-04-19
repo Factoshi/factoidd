@@ -130,26 +130,39 @@ export async function createFactomdConfig(): Promise<FactomdConfig> {
 export async function createAddressConfig(
     addresses: AddressConfig[] = []
 ): Promise<AddressConfig[]> {
-    const addressName = `Address ${addresses.length + 1}`;
+    const addressId = `Address ${addresses.length + 1}`;
 
     const questions = [
         {
             type: 'input',
             name: 'address',
-            message: `${addressName}: Please input public FCT address:`,
+            message: `${addressId}: Please input public FCT address:`,
             validate: (address: string) => {
                 return isValidPublicFctAddress(address) || new Error('Invalid public FCT address');
             },
         },
         {
+            type: 'input',
+            name: 'name',
+            message: `${addressId}: Please give this address a name:`,
+            validate: (name: string) => {
+                if (name.length === 0) {
+                    return new Error('Name cannot be empty');
+                } else if (addresses.some((address) => address.name === name)) {
+                    return new Error('Name must be unique');
+                }
+                return true;
+            },
+        },
+        {
             type: 'confirm',
             name: 'coinbase',
-            message: `${addressName}: Do you want to record coinbase transactions?`,
+            message: `${addressId}: Do you want to record coinbase transactions?`,
         },
         {
             type: 'confirm',
             name: 'nonCoinbase',
-            message: `${addressName}: Do you want to record non-coinbase transactions?`,
+            message: `${addressId}: Do you want to record non-coinbase transactions?`,
         },
         {
             type: 'confirm',
@@ -237,6 +250,7 @@ const Joi = require('joi').extend(require('joi-factom'));
 // Create joi schemas
 const addressConfigSchema: AddressConfig = {
     address: Joi.factom().factoidAddress('public').required(),
+    name: Joi.string().required(),
     coinbase: Joi.boolean().required(),
     nonCoinbase: Joi.boolean().required(),
 };

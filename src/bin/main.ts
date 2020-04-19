@@ -1,6 +1,6 @@
 import commander from 'commander';
 import { init } from './init';
-import { app } from './start';
+import { start } from './start';
 import { getDefaultAppdirPath } from '../lib';
 import { spend } from './spend';
 var pjson = require('../../package.json');
@@ -21,7 +21,7 @@ program
         'path to application directory',
         process.env.APP_DIR || getDefaultAppdirPath()
     )
-    .action(({ loglvl, appdir }) => app(loglvl, appdir));
+    .action(({ loglvl, appdir }) => start(loglvl, appdir));
 
 // spend subcommand creates a spend transaction that is added to bitcoin.tax
 program

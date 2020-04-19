@@ -19,6 +19,7 @@ function formatIncomeTransaction(
 ): TransactionRow {
     return {
         address: conf.address,
+        name: conf.name,
         timestamp: toInteger(tx.timestamp / 1000),
         date: new Date(tx.timestamp).toISOString(),
         txhash: tx.id,
@@ -75,7 +76,7 @@ export async function emitNewTransactions(
 }
 
 function logNewTransaction(tx: TransactionRow) {
-    logger.info('Found new income transaction');
+    logger.info(`\x1b[33mFound new transaction to ${tx.name}\x1b[0m`);
     logger.info(`Transaction ID:    ${tx.txhash}`);
     logger.info(`Date:              ${tx.date}`);
     logger.info(`Height:            ${tx.height}`);

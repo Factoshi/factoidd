@@ -28,6 +28,7 @@ export class TransactionTable {
             CREATE TABLE IF NOT EXISTS transactions (
                 txhash      TEXT,
                 address     TEXT,
+                name        TEXT,
                 date        TEXT,
                 timestamp   INTEGER,
                 receivedFCT REAL,
@@ -48,6 +49,7 @@ export class TransactionTable {
         const values = {
             ':txhash': tx.txhash,
             ':address': tx.address,
+            ':name': tx.name,
             ':date': tx.date,
             ':timestamp': tx.timestamp,
             ':receivedFCT': tx.receivedFCT,
@@ -57,9 +59,9 @@ export class TransactionTable {
 
         return this.db.run(
             `INSERT INTO transactions 
-                (txhash, address, date, timestamp, receivedFCT, currency, height) 
+                (txhash, address, name, date, timestamp, receivedFCT, currency, height) 
             VALUES 
-                (:txhash, :address, :date, :timestamp, :receivedFCT, :currency, :height);`,
+                (:txhash, :address, :name, :date, :timestamp, :receivedFCT, :currency, :height);`,
             values
         );
     }

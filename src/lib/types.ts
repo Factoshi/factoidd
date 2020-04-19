@@ -1,6 +1,7 @@
 export interface TransactionRow {
     timestamp: number;
     address: string;
+    name: string;
     symbol: string;
     currency: string;
     txhash: string;
@@ -36,6 +37,7 @@ export interface FactomdConfig {
 
 export interface AddressConfig {
     address: string;
+    name: string;
     coinbase: boolean;
     nonCoinbase: boolean;
 }

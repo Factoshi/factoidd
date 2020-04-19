@@ -19,7 +19,7 @@ import {
     QuitListener,
 } from '../lib';
 
-export async function processSavedTransactions(
+async function processSavedTransactions(
     db: TransactionTable,
     conf: Config,
     appdir: string,
@@ -41,7 +41,7 @@ export async function processSavedTransactions(
 }
 
 // Main function.
-export async function app(level: string, appdir: string) {
+export async function start(level: string, appdir: string) {
     // There are instances where the programme should not shutdown immediately.
     // quitListener controls shutdown process to allow critical transaction to complete.
     const quitListener = new QuitListener();
@@ -79,7 +79,7 @@ export async function app(level: string, appdir: string) {
 
     // Create the CSV files to record transactions
     logger.info('Creating CSV files');
-    config.addresses.forEach(({ address }) => createCSVFile(appdir, address, CSVSubDir.INCOME));
+    config.addresses.forEach(({ name }) => createCSVFile(appdir, CSVSubDir.INCOME, name));
 
     // Create the transaction listeners to save new transactions.
     factom.event.on('error', (e) => logger.error('Factom event error:', e));
