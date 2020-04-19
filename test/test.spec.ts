@@ -92,6 +92,7 @@ describe('Test Config', () => {
             addresses: [
                 {
                     address: 'FA2uheFcSNM7cDBqbunyNWmRbEbRqPPRFp2m7aMyK3dR8axe7sXf',
+                    name: 'test',
                     coinbase: true,
                     nonCoinbase: false,
                 },
@@ -139,7 +140,7 @@ describe('Test Transactions', async () => {
         const { db, table } = await createMockDB();
         const addressConf = {
             address: 'FA1yNkC81cVXfUL578K6HLySGssv76uW8N9AMJZBvCnPFPsqyBRU',
-            currency: 'GBP',
+            name: 'test',
             coinbase: true, // This should ensure that the tx is saved.
             nonCoinbase: false,
         };
@@ -156,7 +157,7 @@ describe('Test Transactions', async () => {
         const { db, table } = await createMockDB();
         const addressConf = {
             address: 'FA1yNkC81cVXfUL578K6HLySGssv76uW8N9AMJZBvCnPFPsqyBRU',
-            currency: 'GBP',
+            name: 'test',
             coinbase: false, // This should prevent the tx being saved.
             nonCoinbase: false,
         };
@@ -173,7 +174,7 @@ describe('Test Transactions', async () => {
         const { db, table } = await createMockDB();
         const addressConf = {
             address: 'FA2MZs5wASMo9cCiKezdiQKCd8KA6Zbg2xKXKGmYEZBqon9J3ZKv',
-            currency: 'GBP',
+            name: 'test',
             coinbase: true,
             nonCoinbase: true, // This should ensure that the tx is saved.
         };
@@ -190,7 +191,7 @@ describe('Test Transactions', async () => {
         const { db, table } = await createMockDB();
         const addressConf = {
             address: 'FA2MZs5wASMo9cCiKezdiQKCd8KA6Zbg2xKXKGmYEZBqon9J3ZKv',
-            currency: 'GBP',
+            name: 'test',
             coinbase: true,
             nonCoinbase: false, // This should prevent the tx being saved.
         };
@@ -207,7 +208,7 @@ describe('Test Transactions', async () => {
         const { db, table } = await createMockDB();
         const addressConf = {
             address: 'FA3V4VNjfWH3wGAfANGEwNmPkPR3Yc3L1FJGsJ1ZCsKKFe9frJ2a', // this is the sender
-            currency: 'GBP',
+            name: 'test',
             coinbase: true,
             nonCoinbase: true,
         };

@@ -5,6 +5,7 @@ factomd:
     protocol: http
 addresses:
     - address: FA2uheFcSNM7cDBqbunyNWmRbEbRqPPRFp2m7aMyK3dR8axe7sXf
+      name: test
       coinbase: true
       nonCoinbase: false
 options:

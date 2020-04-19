@@ -15,6 +15,7 @@ export function generateMockTransactions(num: number): TransactionRow[] {
         mockTransactions.push({
             timestamp: new Date().getTime(),
             address: generateRandomFctAddress().public,
+            name: 'test',
             symbol: 'FCT',
             currency: 'GBP',
             txhash: randomBytes(32).toString('hex'),
