@@ -4,7 +4,7 @@ import axios from 'axios';
 
 import { TransactionRow } from './types';
 import { AddressConfig } from './types';
-import { toInteger, to6DecimalPlaces } from './utils';
+import { toInteger, to8DecimalPlaces } from './utils';
 import { TransactionTable } from './db';
 import { logger } from './logger';
 import { Factom } from './factom';
@@ -81,7 +81,7 @@ function logNewTransaction(tx: TransactionRow) {
     logger.info(`Date:              ${tx.date}`);
     logger.info(`Height:            ${tx.height}`);
     logger.info(`Address:           ${tx.address}`);
-    logger.info(`Amount:            ${to6DecimalPlaces(tx.receivedFCT)}`);
+    logger.info(`Amount:            ${to8DecimalPlaces(tx.receivedFCT)}`);
 }
 
 /**

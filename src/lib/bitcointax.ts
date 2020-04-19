@@ -5,7 +5,7 @@ import { TransactionTable } from './db';
 import { logger } from './logger';
 import Bottleneck from 'bottleneck';
 import { TransactionRow } from './types';
-import { QuitListener } from './utils';
+import { QuitListener, to8DecimalPlaces } from './utils';
 
 axiosRetry(axios, { retryDelay: exponentialDelay });
 
@@ -46,7 +46,7 @@ function formatTransaction(txRow: TransactionRow, action: BitcoinTaxAction): Add
         action,
         symbol: 'FCT',
         currency: txRow.currency,
-        volume: txRow.receivedFCT,
+        volume: to8DecimalPlaces(txRow.receivedFCT),
         price: txRow.price!,
         memo: txRow.txhash,
         txhash: txRow.txhash,
