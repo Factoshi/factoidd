@@ -54,7 +54,7 @@ export async function emitNewTransactions(
         // Find the maximum processed height.
         const m = await db.getMaxHeight();
         // If the config start height is ahead of the DB, we'll use that instead.
-        const startHeight = m > configStartHeight ? m + 1 : configStartHeight;
+        const startHeight = m >= configStartHeight ? m + 1 : configStartHeight;
         // Find the height at the tip of the blockchain.
         const { directoryBlockHeight: stopHeight } = await factom.cli.getHeights();
 
