@@ -64,7 +64,7 @@ export async function commitTransaction(data: AddTransactionData, keys: Keys) {
         var uri = 'https://api.bitcoin.tax/v1/transactions';
         await axios.post(uri, data, { headers });
     } catch (e) {
-        if (e.response.status === 401) {
+        if (e.response?.status === 401) {
             logger.error('Invalid bitcoin.tax credentials. Please check and try again.');
             process.exit(1);
         }
