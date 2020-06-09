@@ -10,3 +10,8 @@ Factoidd is designed to work with both Systemd and Docker.
 
 -   [Systemd instructions](./SYSTEMD.md)
 -   [Docker instructions](./DOCKER.md)
+
+## Note
+
+It may take some time for transactions to appear on Bitcoin.tax and/or in your CSV file during the first sync. That is because Factoidd collects a complete transaction history
+and fetches price data before recording any of the transactions to either of those two locations.
