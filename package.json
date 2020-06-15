@@ -1,6 +1,6 @@
 {
     "name": "factoidd",
-    "version": "4.0.0",
+    "version": "4.0.1",
     "description": "Fatoidd tracks factoid receipts in a fiat currency of your choice.",
     "main": "build/index.js",
     "scripts": {
