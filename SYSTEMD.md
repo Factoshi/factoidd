@@ -4,7 +4,7 @@ Instructions to run Factoidd with Systemd.
 
 ## Requirements
 
--   **Node.js v10 or higher**.
+-   **Node.js v12 or higher**.
     Installation instructions: https://nodejs.org/en/download/package-manager/
 -   **A Cryptocompare API key**. Get your key here: https://min-api.cryptocompare.com/. There is a free tier.
 -   **Optional: a bitcoin.tax account**. Referral signup link: https://bitcoin.tax/r/3DJmuGLt
