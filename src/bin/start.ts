@@ -83,7 +83,11 @@ export async function start(level: string, appdir: string) {
     config.addresses.forEach(({ name }) => createCSVFile(appdir, CSVSubDir.INCOME, name));
 
     // Create the transaction listeners to save new transactions.
-    factom.event.on('error', (e) => logger.error('Factom event error:', e));
+    factom.event.on('error', (e) => {
+        logger.error('Factom event error:', e);
+        process.exit(1);
+    });
+
     config.addresses.forEach((addressConf: AddressConfig) => {
         const { address } = addressConf;
         const { currency } = config.options;
