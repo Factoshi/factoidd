@@ -5,9 +5,9 @@ name: Factoidd CI
 
 on:
     push:
-        branches: [master, develop]
+        branches: [master]
     pull_request:
-        branches: [master, develop]
+        branches: [master]
 
 jobs:
     build:
@@ -15,7 +15,7 @@ jobs:
 
         strategy:
             matrix:
-                node-version: [12.x, 14.x]
+                node-version: [12.x]
 
         steps:
             - uses: actions/checkout@v2
