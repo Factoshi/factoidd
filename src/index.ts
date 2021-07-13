@@ -70,7 +70,7 @@ export async function main() {
 
     // Set logger.
     const consoleTransport = new winston.transports.Console({
-        level: 'debug',
+        level: process.env.FACTOIDD_LOG_LVL || 'info',
         stderrLevels: ['error'],
     });
     logger.add(consoleTransport);
