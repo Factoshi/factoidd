@@ -1,9 +1,10 @@
 node_modules
 .nyc_output
 coverage
-config/config.yaml
 docker-compose.yaml
 *.env
 build
 appdir
 factoidd.service
+*.yml
+*.yaml

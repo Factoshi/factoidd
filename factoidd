@@ -1,3 +1,15 @@
 #!/usr/bin/env node
-require('./env');
-require('./build/bin/main');
+const { resolve } = require('path');
+const dotenv = require('dotenv');
+
+// Load environment variables.
+const envFile = process.env.NODE_ENV || 'develop';
+const result = dotenv.config({
+    path: resolve(__dirname, `${envFile}.env`),
+});
+if (result.error) {
+    console.log('No env file.');
+}
+
+const { main } = require('./build');
+main();

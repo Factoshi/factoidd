@@ -1,0 +1,18 @@
+factomd:
+  host: api.factomd.net
+  port: 443
+  path: /v2
+  protocol: https
+addresses:
+  - address: FA3BQTmtAzRRHDBcNFWkYq8o1N2Y3Y6FNektGuByc9iXT4Gu98TF
+    name: main
+    coinbase: true
+    nonCoinbase: false
+keys:
+  cryptocompare: d1176a6535e622c5afe1d4a90c5cd27f4e71c394e631248530859fddd23f9dd8
+  bitcoinTax: true
+  bitcoinTaxKey: 6e3765de7001508a
+  bitcoinTaxSecret: 2efa892eac891d9b24fab89ae288e109
+options:
+  currency: USD
+  startHeight: 150000

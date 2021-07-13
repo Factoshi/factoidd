@@ -1,5 +1,0 @@
-{
-    "watch": ["test", "lib/**/*.ts"],
-    "ext": ".ts",
-    "exec": "ENV_FILE=test mocha -r ts-node/register -r env  **/*.spec.ts"
-}
