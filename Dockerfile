@@ -4,12 +4,13 @@ ENV NODE_ENV="production"
 
 WORKDIR /app	
 
-COPY ./package.json ./	
-COPY ./package-lock.json ./	
+COPY ./package.json ./package-lock.json ./	
 
 RUN npm install --production	
 
-COPY ./src ./tsconfig.json ./factoidd ./
+COPY ./src ./src
+COPY ./tsconfig.json  ./
+COPY ./factoidd ./
 
 RUN npm run build	
 
@@ -19,5 +20,4 @@ ENV FACTOIDD_CONFIG_DIR="/etc/factoidd"
 RUN mkdir "/var/lib/factoidd"
 RUN mkdir "/etc/factoidd"
 
-ENTRYPOINT ["./factoidd"]	
-
+CMD ["./factoidd"]
