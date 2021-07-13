@@ -7,6 +7,7 @@ import { AddressTransaction } from './transaction';
 import { appendToCSV, createCSVFile } from './csv';
 import { Config } from './config';
 import { initDB, saveTransaction } from './db';
+import { SigIntListener } from './utils';
 
 /**
  * Loops over past heights to fill in historical transaction data.
@@ -35,17 +36,6 @@ export async function handleNewBlock(cli: FactomCli, db: Database, conf: Config,
 }
 
 async function handleNewTransaction(db: Database, conf: Config, tx: Transaction) {
-    let interrupted = false;
-    const interrupt = () => {
-        logger.warn('shutdown requested while handling transaction');
-        interrupted = true;
-    };
-    const exitOnInterrupt = () => {
-        if (!interrupted) return;
-        logger.info('transaction finished processing');
-        process.exit(0);
-    };
-
     for (const a of conf.addresses) {
         const at = new AddressTransaction(tx, a);
 
@@ -53,19 +43,16 @@ async function handleNewTransaction(db: Database, conf: Config, tx: Transaction)
             continue;
         }
 
-        try {
-            process.on('SIGINT', interrupt);
-            process.on('SIGTERM', interrupt);
+        const s = SigIntListener.getInstance();
+        s.lock();
 
+        try {
             await at.populatePrice(conf.options.currency, conf.keys.cryptocompare);
             if (conf.keys.bitcoinTax) {
                 await at.submitToBT(conf.keys.bitcoinTaxSecret, conf.keys.bitcoinTaxKey);
             }
             appendToCSV(at);
             await saveTransaction(db, at);
-
-            process.removeListener('SIGINT', interrupt);
-            process.removeListener('SIGTERM', interrupt);
         } catch (err) {
             logger.error(`failed to process tx ${at.tx.id}.`);
             logger.error(`your records may be inconsistent.`);
@@ -74,11 +61,13 @@ async function handleNewTransaction(db: Database, conf: Config, tx: Transaction)
         }
 
         at.log();
-        exitOnInterrupt();
+        s.unlock();
     }
 }
 
 export async function main() {
+    SigIntListener.init();
+
     // Set logger.
     const consoleTransport = new winston.transports.Console({
         level: 'debug',
