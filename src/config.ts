@@ -97,7 +97,7 @@ export class Config implements IConfig {
 
         try {
             const yamlString = fs.readFileSync(filepath, 'utf8');
-            const config = yaml.safeLoad(yamlString);
+            const config = yaml.load(yamlString);
             const { value, error } = Joi.validate(config, configSchema, { abortEarly: false });
             if (error instanceof Error) {
                 throw error;
