@@ -1,12 +1,9 @@
 import { FactomCli, FactomEventEmitter, Transaction, FactoidBlock } from 'factom';
 import winston from 'winston';
-import { Database } from 'sqlite';
 
 import { logger } from './logger';
-import { AddressTransaction } from './transaction';
-import { appendToCSV, createCSVFile } from './csv';
+import { createCSVDir, createCSVFile, readSyncHeight } from './data';
 import { Config } from './config';
-import { initDB, saveTransaction } from './db';
 import { SigIntListener } from './utils';
 
 /**
@@ -75,8 +72,10 @@ export async function main() {
     const cli = new FactomCli(conf.factomd);
 
     // Create the CSV files to record transactions
-    logger.info('Creating CSV files');
-    conf.addresses.forEach(({ name }) => createCSVFile(name));
+    await createCSVDir();
+    for (const { name } of conf.addresses) {
+        await createCSVFile(name);
+    }
 
     // Scan blockchain for new transactions.
     logger.info('Scanning blockchain for new transactions');
@@ -84,7 +83,8 @@ export async function main() {
     // Scans inside a loop until we are entirely caught up with the tip of the chain
     for (let lastHeight = 0; ; ) {
         const { directoryBlockHeight } = await cli.getHeights();
-        if (directoryBlockHeight === lastHeight) {
+        const savedHeight = await readSyncHeight();
+        if (directoryBlockHeight === savedHeight) {
             break;
         }
         await scanBlockchain(db, conf, cli, directoryBlockHeight);
