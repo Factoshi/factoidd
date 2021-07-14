@@ -1,5 +1,4 @@
 import factom, { Transaction } from 'factom';
-import axiosRetry, { exponentialDelay } from 'axios-retry';
 import axios from 'axios';
 import { stringify } from 'querystring';
 
@@ -7,8 +6,6 @@ import { toInteger, to8DecimalPlaces } from './utils';
 import { logger } from './logger';
 import { AddressConfig } from './config';
 import { RateLimiter } from './rateLimiter';
-
-axiosRetry(axios, { retryDelay: exponentialDelay });
 
 export class AddressTransaction {
     tx: factom.Transaction;
@@ -92,29 +89,6 @@ export class AddressTransaction {
         }
 
         this.price = response.data.Data[1].close;
-    }
-
-    submitToBT(bitcoinTaxSecret: string, bitcoinTaxKey: string) {
-        const body = {
-            date: this.date,
-            action: 'INCOME',
-            symbol: 'FCT',
-            currency: this.currency,
-            volume: to8DecimalPlaces(this.received),
-            price: this.price!,
-            memo: this.tx.id,
-            txhash: this.tx.id,
-            recipient: this.addr.address,
-        };
-        const headers = { 'X-APIKEY': bitcoinTaxKey, 'X-APISECRET': bitcoinTaxSecret };
-
-        const limiter = RateLimiter.getInstance();
-
-        return limiter.scheduleBitcoinTax(() =>
-            axios.post('https://api.bitcoin.tax/v1/transactions', body, {
-                headers,
-            })
-        );
     }
 
     log() {

@@ -3,7 +3,8 @@ import path from 'path';
 
 import yaml from 'js-yaml';
 import { logger } from './logger';
-import { CONFIG_DIR } from './constants';
+
+const CONFIG_DIR = process.env.FACTOIDD_CONFIG_DIR || path.resolve(__dirname, '..', 'config');
 
 // Config types
 export interface FactomdConfig {
@@ -92,7 +93,7 @@ export class Config implements IConfig {
 
     constructor() {
         const filepath = path.resolve(CONFIG_DIR, 'config.yml');
-        logger.info(`Reading config from: ${filepath}`);
+        logger.info(`Reading config: ${filepath}`);
 
         try {
             const yamlString = fs.readFileSync(filepath, 'utf8');
