@@ -15,12 +15,12 @@ export const to8DecimalPlaces = toDecimalPlaces(8);
 export const toInteger = toDecimalPlaces(0);
 
 export class SigIntListener {
-    private locked: boolean;
+    private locks: number;
     private quitRequested: boolean;
     private static instance: SigIntListener;
 
     private constructor() {
-        this.locked = false;
+        this.locks = 0;
         this.quitRequested = false;
         process.on('SIGINT', this.tryAbort);
         process.on('SIGTERM', this.tryAbort);
@@ -39,7 +39,7 @@ export class SigIntListener {
 
     private async tryAbort() {
         this.quitRequested = true;
-        if (this.locked) {
+        if (this.locks > 0) {
             logger.warn('quit requested: process busy, setting 10 second timeout');
             await new Promise((resolve) => setTimeout(resolve, 10000));
             logger.error('forcing exit');
@@ -48,12 +48,12 @@ export class SigIntListener {
     }
 
     lock() {
-        this.locked = true;
+        this.locks++;
     }
 
     unlock() {
-        this.locked = false;
-        if (this.quitRequested) {
+        this.locks--;
+        if (this.quitRequested && this.locks == 0) {
             process.exit(0);
         }
     }

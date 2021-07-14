@@ -1,4 +1,4 @@
-import factom, { FactomCli, FactomEventEmitter, Transaction, DirectoryBlock } from 'factom';
+import { FactomCli, FactomEventEmitter, Transaction, FactoidBlock } from 'factom';
 import winston from 'winston';
 import { Database } from 'sqlite';
 
@@ -23,15 +23,10 @@ export async function scanBlockchain(db: Database, conf: Config, cli: FactomCli,
 
     for (let i = startHeight; i <= to; i++) {
         if (i % 1000 === 0) logger.info(`Scanning block height: ${i}`);
-        const directoryBlock = await cli.getDirectoryBlock(i);
-        await handleNewBlock(cli, db, conf, directoryBlock);
-    }
-}
-
-export async function handleNewBlock(cli: FactomCli, db: Database, conf: Config, b: DirectoryBlock) {
-    const f = await cli.getFactoidBlock(b.factoidBlockRef);
-    for (const tx of f.transactions) {
-        await handleNewTransaction(db, conf, tx);
+        const fBlock = await cli.getFactoidBlock(i);
+        for (const tx of fBlock.transactions) {
+            await handleNewTransaction(db, conf, tx);
+        }
     }
 }
 
@@ -101,9 +96,11 @@ export async function main() {
     // Listens for new directory blocks by polling factomd
     const e = new FactomEventEmitter(cli);
 
-    e.on('newDirectoryBlock', async (directoryBlock: factom.DirectoryBlock) => {
+    e.on('newFactoidBlock', async (fBlock: FactoidBlock) => {
         try {
-            await handleNewBlock(cli, db, conf, directoryBlock);
+            for (const tx of fBlock.transactions) {
+                await handleNewTransaction(db, conf, tx);
+            }
         } catch (err) {
             logger.error(`Error on processing new block`, err);
             process.exit(1);
