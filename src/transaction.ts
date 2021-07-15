@@ -96,11 +96,11 @@ export class AddressTransaction {
     }
 
     log() {
-        logger.info(`\x1b[33mFound new transaction to ${this.addr.name}\x1b[0m`);
+        logger.info(`\x1b[33mFound new transaction\x1b[0m`);
         logger.info(`Transaction ID:    ${this.tx.id}`);
         logger.info(`Date:              ${this.date}`);
         logger.info(`Height:            ${this.height}`);
-        logger.info(`Address:           ${this.addr.address}`);
+        logger.info(`Address:           ${this.addr.name}`);
         logger.info(`Amount:            ${to8DecimalPlaces(this.received)}`);
         logger.info(`Price:             ${this.price}`);
     }

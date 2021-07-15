@@ -10,7 +10,7 @@ import { SigIntListener } from './utils';
  * Loops over past heights to fill in historical transaction data.
  */
 export async function syncTransactions(conf: Config, cli: FactomCli) {
-    logger.info('Syncing new transactions');
+    logger.info('Syncing transactions');
 
     for (;;) {
         try {

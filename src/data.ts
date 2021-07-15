@@ -13,8 +13,8 @@ const DATA_DIR = process.env.FACTOIDD_DATA_DIR || resolve(__dirname, '..', 'data
 
 export async function createCSVDir() {
     try {
-        const csvdir = resolve(DATA_DIR, 'csv');
-        logger.info(`Creating CSV directory: ${csvdir}`);
+        const csvdir = resolve(DATA_DIR, 'income');
+        logger.info(`Creating income CSV directory: ${csvdir}`);
         await fsp.mkdir(csvdir);
     } catch (err) {
         if (err.code != 'EEXIST') {
@@ -25,7 +25,7 @@ export async function createCSVDir() {
 
 export async function createCSVFile(addressName: string) {
     try {
-        const csvFile = resolve(DATA_DIR, 'csv', `${addressName}.csv`);
+        const csvFile = resolve(DATA_DIR, 'income', `${addressName}.csv`);
         await fsp.appendFile(csvFile, 'date,height,address,txhash,volume,price,total,currency\n', {
             flag: 'ax', // Flag throws if file already exists.
         });
@@ -49,7 +49,7 @@ export function appendToCSV(data: AddressTransaction) {
             data.currency,
         ].join(',') + '\n';
 
-    const csvFile = resolve(DATA_DIR, 'csv', `${data.addr.name}.csv`);
+    const csvFile = resolve(DATA_DIR, 'income', `${data.addr.name}.csv`);
     return fsp.appendFile(csvFile, csvStr);
 }
 
