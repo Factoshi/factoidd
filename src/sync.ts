@@ -11,6 +11,7 @@ import { SigIntListener } from './utils';
  */
 export async function syncTransactions(conf: Config, cli: FactomCli) {
     logger.info('Syncing transactions');
+    const s = SigIntListener.getInstance();
 
     for (;;) {
         try {
@@ -27,8 +28,10 @@ export async function syncTransactions(conf: Config, cli: FactomCli) {
                 if (i % 100 === 0) {
                     logger.info(`Syncing block height: ${i}`);
                 }
+                s.lock();
                 await syncBlock(conf, cli, i);
                 await setSyncHeight(i);
+                s.unlock();
             }
         } catch (err) {
             logger.error('sync error:', err);
@@ -49,9 +52,6 @@ async function syncBlock(conf: Config, cli: FactomCli, height: number) {
                 continue;
             }
 
-            const s = SigIntListener.getInstance();
-            s.lock();
-
             try {
                 // Cannot recover automatically if one of these fails. User intervention required.
                 await at.populatePrice(conf.options.currency, conf.keys.cryptocompare);
@@ -65,7 +65,6 @@ async function syncBlock(conf: Config, cli: FactomCli, height: number) {
             }
 
             at.log();
-            s.unlock();
         }
     }
 }

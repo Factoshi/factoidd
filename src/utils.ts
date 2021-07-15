@@ -22,8 +22,8 @@ export class SigIntListener {
     private constructor() {
         this.locks = 0;
         this.quitRequested = false;
-        process.on('SIGINT', this.tryAbort);
-        process.on('SIGTERM', this.tryAbort);
+        process.on('SIGINT', async () => await this.tryInterrupt());
+        process.on('SIGTERM', async () => await this.tryInterrupt());
     }
 
     public static init() {
@@ -37,14 +37,22 @@ export class SigIntListener {
         return SigIntListener.instance;
     }
 
-    private async tryAbort() {
+    private async tryInterrupt() {
         this.quitRequested = true;
+        logger.info('Shutting down...');
+
         if (this.locks > 0) {
-            logger.warn('quit requested: process busy, setting 10 second timeout');
             await new Promise((resolve) => setTimeout(resolve, 10000));
-            logger.error('forcing exit');
+            logger.error('Process failed to unlock: force qutting');
+            this.exit(1);
         }
-        process.exit(0);
+
+        this.exit(0);
+    }
+
+    private exit(code: number) {
+        logger.info('Bye!');
+        process.exit(code);
     }
 
     lock() {
@@ -54,7 +62,7 @@ export class SigIntListener {
     unlock() {
         this.locks--;
         if (this.quitRequested && this.locks == 0) {
-            process.exit(0);
+            this.exit(0);
         }
     }
 }
