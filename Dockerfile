@@ -21,9 +21,10 @@ ENV FACTOIDD_CONFIG_DIR="/etc/factoidd"
 WORKDIR /app	
 
 COPY --from=Builder /build/build ./build
+COPY --from=Builder /build/node_modules ./node_modules
 COPY --from=Builder /build/factoidd /build/package.json /build/package-lock.json ./
 
-RUN npm install	--production
+RUN npm prune --production
 RUN mkdir "/var/lib/factoidd"
 RUN mkdir "/etc/factoidd"
 
