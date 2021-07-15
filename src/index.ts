@@ -5,7 +5,7 @@ import { logger } from './logger';
 import { createCSVDir, createCSVFile, getSyncHeight, setSyncHeight } from './data';
 import { Config } from './config';
 import { SigIntListener } from './utils';
-import { syncTransactions } from './sync';
+import { sync } from './sync';
 
 export async function main() {
     SigIntListener.init();
@@ -31,5 +31,5 @@ export async function main() {
         await setSyncHeight(conf.options.startHeight);
     }
 
-    await syncTransactions(conf, cli);
+    await sync(conf, cli);
 }
