@@ -2,10 +2,10 @@ import { FactomCli } from 'factom';
 import winston from 'winston';
 
 import { logger } from './logger';
-import { createCSVDir, createCSVFile, readSyncHeight } from './data';
+import { createCSVDir, createCSVFile, getSyncHeight, setSyncHeight } from './data';
 import { Config } from './config';
 import { SigIntListener } from './utils';
-import { listenForNewBlocks, scanBlockchain } from './sync';
+import { syncTransactions } from './sync';
 
 export async function main() {
     SigIntListener.init();
@@ -26,20 +26,10 @@ export async function main() {
         await createCSVFile(name);
     }
 
-    // Scan blockchain for new transactions.
-    logger.info('Scanning blockchain for new transactions');
-
-    // Scans inside a loop until we are entirely caught up with the tip of the chain
-    for (;;) {
-        const { directoryBlockHeight } = await cli.getHeights();
-        const savedHeight = await readSyncHeight();
-        if (directoryBlockHeight === savedHeight) {
-            break;
-        }
-        await scanBlockchain(conf, cli, directoryBlockHeight);
+    const syncHeight = await getSyncHeight();
+    if (conf.options.startHeight > syncHeight) {
+        await setSyncHeight(conf.options.startHeight);
     }
 
-    logger.info(`Scan complete. Listening for new blocks`);
-
-    listenForNewBlocks(cli, conf);
+    await syncTransactions(conf, cli);
 }

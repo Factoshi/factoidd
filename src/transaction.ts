@@ -1,11 +1,15 @@
-import factom, { Transaction } from 'factom';
-import axios from 'axios';
 import { stringify } from 'querystring';
+
+import axios from 'axios';
+import factom, { Transaction } from 'factom';
+import axiosRetry, { exponentialDelay } from 'axios-retry';
 
 import { toInteger, to8DecimalPlaces } from './utils';
 import { logger } from './logger';
 import { AddressConfig } from './config';
 import { RateLimiter } from './rateLimiter';
+
+axiosRetry(axios, { retryDelay: exponentialDelay });
 
 export class AddressTransaction {
     tx: factom.Transaction;

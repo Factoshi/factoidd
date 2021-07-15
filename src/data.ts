@@ -2,7 +2,6 @@ import { promises as fsp } from 'fs';
 import { resolve } from 'path';
 
 import axios from 'axios';
-import axiosRetry, { exponentialDelay } from 'axios-retry';
 
 import { to2DecimalPlaces, to8DecimalPlaces } from './utils';
 import { AddressTransaction } from './transaction';
@@ -28,7 +27,7 @@ export async function createCSVFile(addressName: string) {
     try {
         const csvFile = resolve(DATA_DIR, 'csv', `${addressName}.csv`);
         await fsp.appendFile(csvFile, 'date,height,address,txhash,volume,price,total,currency\n', {
-            flag: 'ax',
+            flag: 'ax', // Flag throws if file already exists.
         });
     } catch (err) {
         if (err.code != 'EEXIST') {
@@ -54,13 +53,18 @@ export function appendToCSV(data: AddressTransaction) {
     return fsp.appendFile(csvFile, csvStr);
 }
 
-export function writeSyncHeight(height: number) {
-    const path = resolve(DATA_DIR, 'height.json');
-    const heightJson = JSON.stringify({ height });
-    return fsp.writeFile(path, heightJson);
+export async function setSyncHeight(height: number) {
+    try {
+        const path = resolve(DATA_DIR, 'height.json');
+        const heightJson = JSON.stringify({ height });
+        await fsp.writeFile(path, heightJson);
+    } catch (err) {
+        logger.error(`failed to set height.json to ${height}:`, err);
+        process.exit(1);
+    }
 }
 
-export async function readSyncHeight() {
+export async function getSyncHeight() {
     try {
         const path = resolve(DATA_DIR, 'height.json');
         const json = await fsp.readFile(path);
@@ -73,8 +77,6 @@ export async function readSyncHeight() {
         throw err;
     }
 }
-
-axiosRetry(axios, { retryDelay: exponentialDelay });
 
 export async function writeToBitcoinTax(conf: Config, data: AddressTransaction) {
     if (!conf.keys.bitcoinTax) {

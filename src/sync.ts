@@ -1,48 +1,45 @@
-import { FactomCli, FactomEventEmitter, FactoidBlock } from 'factom';
+import { FactomCli } from 'factom';
 
 import { logger } from './logger';
 import { AddressTransaction } from './transaction';
-import { appendToCSV, readSyncHeight, writeSyncHeight, writeToBitcoinTax } from './data';
+import { appendToCSV, getSyncHeight, setSyncHeight, writeToBitcoinTax } from './data';
 import { Config } from './config';
 import { SigIntListener } from './utils';
-
-export function listenForNewBlocks(cli: FactomCli, conf: Config) {
-    // Listens for new directory blocks by polling factomd
-    const e = new FactomEventEmitter(cli);
-
-    e.on('newFactoidBlock', async (fBlock: FactoidBlock) => {
-        try {
-            await handleNewBlock(conf, fBlock);
-        } catch (err) {
-            logger.error(`Error on processing new block`, err);
-            process.exit(1);
-        }
-    });
-
-    e.on('error', (err) => {
-        logger.error('Factom event error:', err);
-        process.exit(1);
-    });
-}
 
 /**
  * Loops over past heights to fill in historical transaction data.
  */
-export async function scanBlockchain(conf: Config, cli: FactomCli, to: number) {
-    const h = await readSyncHeight();
+export async function syncTransactions(conf: Config, cli: FactomCli) {
+    logger.info('Syncing new transactions');
 
-    // If the config start height is ahead of the saved height, we'll use that instead.
-    const startHeight = h >= conf.options.startHeight ? h + 1 : conf.options.startHeight;
+    for (;;) {
+        try {
+            const { directoryBlockHeight } = await cli.getHeights();
+            const syncHeight = await getSyncHeight();
 
-    for (let i = startHeight; i <= to; i++) {
-        if (i % 1000 === 0) logger.info(`Scanning block height: ${i}`);
-        const fBlock = await cli.getFactoidBlock(i);
-        await handleNewBlock(conf, fBlock);
+            if (directoryBlockHeight === syncHeight) {
+                // Sleep for a minute
+                await new Promise((resolve) => setTimeout(resolve, 60000));
+                continue;
+            }
+
+            for (let i = syncHeight + 1; i <= directoryBlockHeight; i++) {
+                if (i % 100 === 0) {
+                    logger.info(`Syncing block height: ${i}`);
+                }
+                await syncBlock(conf, cli, i);
+                await setSyncHeight(i);
+            }
+        } catch (err) {
+            logger.error('sync error:', err);
+            await new Promise((resolve) => setTimeout(resolve, 60000));
+            continue;
+        }
     }
 }
 
-async function handleNewBlock(conf: Config, block: FactoidBlock) {
-    const height = block.directoryBlockHeight;
+async function syncBlock(conf: Config, cli: FactomCli, height: number) {
+    const block = await cli.getFactoidBlock(height);
 
     for (const tx of block.transactions) {
         for (const a of conf.addresses) {
@@ -56,14 +53,14 @@ async function handleNewBlock(conf: Config, block: FactoidBlock) {
             s.lock();
 
             try {
+                // Cannot recover automatically if one of these fails. User intervention required.
                 await at.populatePrice(conf.options.currency, conf.keys.cryptocompare);
                 await Promise.all([writeToBitcoinTax(conf, at), appendToCSV(at)]);
             } catch (err) {
-                logger.error(`failed to process tx ${at.tx.id} at height ${height}.`);
+                logger.error(`failed to process tx ${at.tx.id} at height ${height}.`, err);
                 logger.error(
                     `remove transactions for height ${height} from csv and bitcoin.tax before restarting`
                 );
-                console.log(err);
                 process.exit(1);
             }
 
@@ -71,6 +68,4 @@ async function handleNewBlock(conf: Config, block: FactoidBlock) {
             s.unlock();
         }
     }
-
-    return writeSyncHeight(height);
 }
