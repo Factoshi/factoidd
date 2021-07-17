@@ -1,10 +1,10 @@
 import { FactomCli } from 'factom';
 
 import { logger } from './logger';
-import { AddressTransaction } from './transaction';
+import { Transaction } from './transaction';
 import { appendToCSV, getSyncHeight, setSyncHeight, writeToBitcoinTax } from './data';
 import { Config } from './config';
-import { SigIntListener } from './utils';
+import { SigIntListener, to8DecimalPlaces } from './utils';
 
 /**
  * Loops over past heights to fill in historical transaction data.
@@ -44,27 +44,33 @@ export async function sync(conf: Config, cli: FactomCli) {
 async function syncBlock(conf: Config, cli: FactomCli, height: number) {
     const block = await cli.getFactoidBlock(height);
 
-    for (const tx of block.transactions) {
-        for (const a of conf.addresses) {
-            const at = new AddressTransaction(tx, a);
+    for (const transaction of block.transactions) {
+        const tx = new Transaction(transaction);
 
-            if (!at.isRelevant()) {
+        for (const addr of conf.addresses) {
+            if (!tx.isRelevant(addr)) {
                 continue;
             }
 
             try {
                 // Cannot recover automatically if one of these fails. User intervention required.
-                await at.populatePrice(conf.options.currency, conf.keys.cryptocompare);
-                await Promise.all([writeToBitcoinTax(conf, at), appendToCSV(at)]);
+                await tx.populatePrice(conf.options.currency, conf.keys.cryptocompare);
+                await Promise.all([writeToBitcoinTax(conf, tx, addr), appendToCSV(tx, addr)]);
             } catch (err) {
-                logger.error(`failed to process tx ${at.tx.id} at height ${height}.`, err);
+                logger.error(`failed to process tx ${transaction.id} at height ${height}.`, err);
                 logger.error(
                     `remove transactions for height ${height} from csv and bitcoin.tax before restarting`
                 );
                 process.exit(1);
             }
 
-            at.log();
+            logger.info(`\x1b[33mFound new transaction\x1b[0m`);
+            logger.info(`Address:           ${addr.name}`);
+            logger.info(`Transaction ID:    ${transaction.id}`);
+            logger.info(`Date:              ${tx.date}`);
+            logger.info(`Height:            ${tx.height}`);
+            logger.info(`Amount:            ${to8DecimalPlaces(tx.received(addr))}`);
+            logger.info(`Price:             ${tx.price}`);
         }
     }
 }

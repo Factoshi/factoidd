@@ -1,27 +1,23 @@
 import { stringify } from 'querystring';
 
 import axios from 'axios';
-import factom, { Transaction } from 'factom';
+import factom from 'factom';
 import axiosRetry, { exponentialDelay } from 'axios-retry';
 
-import { toInteger, to8DecimalPlaces } from './utils';
+import { toInteger } from './utils';
 import { logger } from './logger';
 import { AddressConfig } from './config';
 import { RateLimiter } from './rateLimiter';
 
 axiosRetry(axios, { retryDelay: exponentialDelay });
 
-export class AddressTransaction {
+export class Transaction {
     tx: factom.Transaction;
-    addr: AddressConfig;
-
     price?: number;
     currency?: string;
-    private _received?: number;
 
-    constructor(tx: Transaction, addr: AddressConfig) {
+    constructor(tx: factom.Transaction) {
         this.tx = tx;
-        this.addr = addr;
     }
 
     get date() {
@@ -36,25 +32,20 @@ export class AddressTransaction {
         return this.tx.blockContext.directoryBlockHeight;
     }
 
-    get received() {
-        if (this._received != undefined) {
-            return this._received;
-        }
+    received(addr: AddressConfig) {
         // prettier-ignore
-        let r = this.tx.factoidOutputs
-                .filter((io) => io.address === this.addr.address)
+        return this.tx.factoidOutputs
+                .filter((io) => io.address === addr.address)
                 .reduce((total, current) => (total += current.amount), 0) * Math.pow(10, -8);
-        this._received = r;
-        return r;
     }
 
     // isRelevant determines whether or not this transaction meets the criteria set by the address config
-    isRelevant() {
-        if (this.received == 0) {
+    isRelevant(addr: AddressConfig) {
+        if (this.received(addr) == 0) {
             return false;
         }
 
-        const { coinbase, nonCoinbase } = this.addr;
+        const { coinbase, nonCoinbase } = addr;
 
         // Address may only record coinbase or non-coinbsae tranactions.
         const isCoinbase = this.tx.totalInputs === 0;
@@ -62,10 +53,9 @@ export class AddressTransaction {
     }
 
     async populatePrice(currency: string, secret: string) {
-        if (this.price != undefined && this.currency != undefined) {
+        if (this.price != undefined && this.currency == currency) {
             return;
         }
-        this.currency = currency;
 
         const timePrecision = this.timestamp > Date.now() / 1000 - 600000 ? 'histominute' : 'histohour';
 
@@ -93,15 +83,6 @@ export class AddressTransaction {
         }
 
         this.price = response.data.Data[1].close;
-    }
-
-    log() {
-        logger.info(`\x1b[33mFound new transaction\x1b[0m`);
-        logger.info(`Transaction ID:    ${this.tx.id}`);
-        logger.info(`Date:              ${this.date}`);
-        logger.info(`Height:            ${this.height}`);
-        logger.info(`Address:           ${this.addr.name}`);
-        logger.info(`Amount:            ${to8DecimalPlaces(this.received)}`);
-        logger.info(`Price:             ${this.price}`);
+        this.currency = currency;
     }
 }

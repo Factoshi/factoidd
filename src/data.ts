@@ -4,8 +4,8 @@ import { resolve } from 'path';
 import axios from 'axios';
 
 import { to2DecimalPlaces, to8DecimalPlaces } from './utils';
-import { AddressTransaction } from './transaction';
-import { Config } from './config';
+import { Transaction } from './transaction';
+import { AddressConfig, Config } from './config';
 import { RateLimiter } from './rateLimiter';
 import { logger } from './logger';
 
@@ -36,20 +36,21 @@ export async function createCSVFile(addressName: string) {
     }
 }
 
-export function appendToCSV(data: AddressTransaction) {
+export function appendToCSV(tx: Transaction, addr: AddressConfig) {
+    const received = tx.received(addr);
     const csvStr =
         [
-            data.date,
-            data.height,
-            data.addr.address,
-            data.tx.id,
-            to8DecimalPlaces(data.received),
-            data.price,
-            to2DecimalPlaces(data.price! * data.received),
-            data.currency,
+            tx.date,
+            tx.height,
+            addr.address,
+            tx.tx.id,
+            to8DecimalPlaces(received),
+            tx.price,
+            to2DecimalPlaces(tx.price! * received),
+            tx.currency,
         ].join(',') + '\n';
 
-    const csvFile = resolve(DATA_DIR, 'income', `${data.addr.name}.csv`);
+    const csvFile = resolve(DATA_DIR, 'income', `${addr.name}.csv`);
     return fsp.appendFile(csvFile, csvStr);
 }
 
@@ -78,21 +79,21 @@ export async function getSyncHeight() {
     }
 }
 
-export async function writeToBitcoinTax(conf: Config, data: AddressTransaction) {
+export async function writeToBitcoinTax(conf: Config, tx: Transaction, addr: AddressConfig) {
     if (!conf.keys.bitcoinTax) {
         return;
     }
 
     const body = {
-        date: data.date,
+        date: tx.date,
         action: 'INCOME',
         symbol: 'FCT',
-        currency: data.currency,
-        volume: to8DecimalPlaces(data.received),
-        price: data.price!,
-        memo: data.tx.id,
-        txhash: data.tx.id,
-        recipient: data.addr.address,
+        currency: tx.currency,
+        volume: to8DecimalPlaces(tx.received(addr)),
+        price: tx.price!,
+        memo: tx.tx.id,
+        txhash: tx.tx.id,
+        recipient: addr.address,
     };
     const headers = { 'X-APIKEY': conf.keys.bitcoinTaxKey, 'X-APISECRET': conf.keys.bitcoinTaxSecret };
 
